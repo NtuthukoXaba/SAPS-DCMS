@@ -1,0 +1,17 @@
+{% extends 'layout.html' %}
+{% block title %}{{ d.number }}{% endblock %}
+{% set active_nav = 'csc.dockets' %}
+{% block content %}
+<a href="{{ url_for('csc.dockets') }}" class="back-link"><i data-lucide="arrow-left"></i>Back to My Dockets</a>
+<div class="welcome">
+  <div>
+    <h1 class="page-title docket-title">Docket No: {{ d.number }} {{ ui.status(d.status) }}</h1>
+    <p class="page-sub">{{ d.crime_type }} · Registered {{ d.created_at|dt }} · Priority: {{ ui.prio(d.priority) }}</p>
+  </div>
+  <div class="welcome-actions">
+    <button class="btn btn-outline" onclick="window.print()"><i data-lucide="printer"></i>Print Acknowledgement</button>
+  </div>
+</div>
+{% set show_investigation = False %}
+{% include 'partials/docket_info.html' %}
+{% endblock %}

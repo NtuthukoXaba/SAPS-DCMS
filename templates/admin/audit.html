@@ -1,0 +1,25 @@
+{% extends 'layout.html' %}
+{% block title %}Audit Log{% endblock %}
+{% block content %}
+{% call ui.header('Audit Log', 'Every action in the system. Entries can only be added – never edited or deleted.') %}
+  <a class="btn btn-outline" href="{{ url_for('admin.audit_export', **request.args) }}"><i data-lucide="download"></i>Export CSV</a>
+{% endcall %}
+{% if chain_ok %}
+<div class="flash flash-success"><i data-lucide="shield-check"></i><span>Integrity verified: all {{ checked }} entries are unchanged (SHA-256 hash chain).</span></div>
+{% else %}
+<div class="flash flash-error"><i data-lucide="shield-alert"></i><span>Warning: the audit log has been tampered with at entry #{{ bad }}.</span></div>
+{% endif %}
+<form class="card filters" method="get">
+  <div class="field grow"><label for="q">Search</label><input id="q" name="q" class="input" value="{{ f.q }}" placeholder="Person, docket number or details"></div>
+  <div class="field"><label for="action">Action</label>{{ ui.select('action', actions, f.action, 'All actions') }}</div>
+  <div class="field"><label for="date_from">From</label><input id="date_from" name="date_from" type="date" class="input" value="{{ f.date_from }}"></div>
+  <div class="field"><label for="date_to">To</label><input id="date_to" name="date_to" type="date" class="input" value="{{ f.date_to }}"></div>
+  <button class="btn btn-primary" type="submit">Filter</button>
+  {% if f.values()|select|list %}<a class="btn btn-outline" href="{{ url_for('admin.audit') }}">Clear</a>{% endif %}
+</form>
+<section class="card">
+  <div class="card-head"><h2 class="card-title">{{ total }} entries</h2><span class="muted-note"><i data-lucide="lock"></i>Append-only</span></div>
+  {% include 'partials/audit_table.html' %}
+  {{ ui.pager(page, pages, 'admin.audit') }}
+</section>
+{% endblock %}

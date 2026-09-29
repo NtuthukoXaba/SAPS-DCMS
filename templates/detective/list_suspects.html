@@ -1,0 +1,16 @@
+{% extends 'layout.html' %}
+{% block title %}Suspects{% endblock %}
+{% block content %}
+{{ ui.header('Suspects', 'All suspects across your cases') }}
+<section class="card">
+  {% if rows %}
+  <div class="table-wrap"><table class="table">
+    <thead><tr><th>Name</th><th>ID Number</th><th>Status</th><th>Docket</th><th>Crime</th><th>Added</th></tr></thead>
+    <tbody>{% for s in rows %}
+      <tr class="row-link" data-href="{{ url_for('detective.case', number=s.number, tab='suspects') }}"><td><strong>{{ s.full_name }}</strong></td><td class="nowrap">{{ s.id_no|idfmt if s.id_no else '—' }}</td>
+        <td><span class="badge badge-info">{{ s.status }}</span></td><td><a class="link" href="{{ url_for('detective.case', number=s.number, tab='suspects') }}">{{ s.number }}</a></td><td>{{ s.crime_type }}</td><td>{{ s.created_at|dt('%d %b %Y') }}</td></tr>
+    {% endfor %}</tbody>
+  </table></div>
+  {% else %}{{ ui.empty('users', 'No suspects recorded on your cases.') }}{% endif %}
+</section>
+{% endblock %}

@@ -1,0 +1,79 @@
+{% import 'partials/macros.html' as ui with context %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Dashboard{% endblock %} | SAPS-DCMS</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <link rel="icon" href="{{ url_for('static', filename='images/logo.svg') }}">
+  <meta name="csrf-token" content="{{ csrf_token() }}">
+</head>
+<body>
+<div class="app">
+
+  <!-- ============ SIDEBAR ============ -->
+  <aside class="sidebar" id="sidebar">
+    <a href="{{ url_for('common.dashboard') }}" class="brand">
+      <img src="{{ url_for('static', filename='images/logo.svg') }}" alt="SAPS-DCMS logo">
+      <div>
+        <div class="brand-title">SAPS-DCMS</div>
+        <div class="brand-sub">Case Docket<br>Management System</div>
+      </div>
+    </a>
+    <ul class="nav">
+      {% set section = request.endpoint.split('.')[0] ~ '.' %}
+      {% for label, icon, endpoint in NAV[me.role] %}
+      {% set active = request.endpoint == endpoint or (active_nav is defined and active_nav == endpoint) %}
+      <li><a href="{{ url_for(endpoint) }}" class="{{ 'active' if active }}"><i data-lucide="{{ icon }}"></i>{{ label }}</a></li>
+      {% endfor %}
+      <li><a href="{{ url_for('common.profile') }}" class="{{ 'active' if request.endpoint == 'common.profile' }}"><i data-lucide="user"></i>Profile</a></li>
+      <li><a href="{{ url_for('public.logout') }}"><i data-lucide="log-out"></i>Logout</a></li>
+    </ul>
+  </aside>
+
+  <!-- ============ MAIN ============ -->
+  <div class="main">
+    <header class="topbar">
+      <button class="icon-btn sidebar-toggle" id="sidebarToggle" aria-label="Menu"><i data-lucide="menu"></i></button>
+      {% set search_ep = {'csc': 'csc.search', 'commander': 'commander.dockets', 'detective': 'detective.cases', 'admin': 'admin.audit'}[me.role] %}
+      <form class="top-search" action="{{ url_for(search_ep) }}" method="get">
+        <i data-lucide="search"></i>
+        <input type="text" name="q" placeholder="{{ 'Search the audit log…' if me.role == 'admin' else 'Search docket number, name or ID…' }}">
+      </form>
+      <div class="top-actions">
+        <span class="muted small hide-sm">{{ me.station }}</span>
+        <a href="{{ url_for('common.profile') }}" class="user">
+          <div class="avatar"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4.2"/><path d="M3.5 21c.8-4.4 4.2-7 8.5-7s7.7 2.6 8.5 7z"/></svg></div>
+          <div>
+            <div class="user-name">{{ me.name }}</div>
+            <div class="user-role">{{ ROLE_NAMES[me.role] }}</div>
+          </div>
+        </a>
+      </div>
+    </header>
+
+    <main class="content">
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% for category, message in messages %}
+        <div class="flash flash-{{ category }}">
+          <i data-lucide="{{ 'circle-check' if category == 'success' else 'circle-alert' }}"></i>
+          <span>{{ message }}</span>
+          <button class="icon-btn" onclick="this.parentElement.remove()" aria-label="Dismiss"><i data-lucide="x"></i></button>
+        </div>
+        {% endfor %}
+      {% endwith %}
+
+      {% block content %}{% endblock %}
+    </main>
+  </div>
+</div>
+
+<script src="{{ url_for('static', filename='js/lucide.min.js') }}"></script>
+<script src="{{ url_for('static', filename='js/app.js') }}"></script>
+{% block scripts %}{% endblock %}
+</body>
+</html>

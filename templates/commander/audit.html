@@ -1,0 +1,15 @@
+{% extends 'layout.html' %}
+{% block title %}Station Audit Log{% endblock %}
+{% block content %}
+{{ ui.header('Station Audit Log', 'Every action on ' ~ me.station ~ ' dockets and by ' ~ me.station ~ ' staff. Entries cannot be edited or deleted.') }}
+<form class="card filters" method="get">
+  <div class="field grow"><label for="q">Search</label><input id="q" name="q" class="input" value="{{ q }}" placeholder="Action, docket number or person"></div>
+  <button class="btn btn-primary" type="submit">Search</button>
+  {% if q %}<a href="{{ url_for('commander.audit') }}" class="btn btn-outline">Clear</a>{% endif %}
+</form>
+<section class="card">
+  <div class="card-head"><h2 class="card-title">{{ total }} entries</h2><span class="muted-note"><i data-lucide="lock"></i>Append-only</span></div>
+  {% include 'partials/audit_table.html' %}
+  {{ ui.pager(page, pages, 'commander.audit') }}
+</section>
+{% endblock %}

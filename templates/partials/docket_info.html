@@ -1,0 +1,76 @@
+{# Shared docket details. Set show_investigation = True to include suspects, witnesses, evidence and notes. #}
+<div class="dash-grid">
+  <section class="card">
+    <div class="card-head"><h2 class="card-title">Complainant</h2></div>
+    <dl class="info-list">
+      <div><dt>Full name</dt><dd>{{ d.complainant }}</dd></div>
+      <div><dt>ID number</dt><dd>{{ d.id_no|idfmt }}</dd></div>
+      <div><dt>Contact</dt><dd>{{ d.contact }}</dd></div>
+      <div><dt>Email</dt><dd>{{ d.email or '—' }}</dd></div>
+      <div><dt>Address</dt><dd>{{ d.address }}</dd></div>
+      <div><dt>Check-in</dt><dd>{{ d.checkin_ref or 'Walk-in (no kiosk check-in)' }}</dd></div>
+    </dl>
+  </section>
+
+  <section class="card span-2">
+    <div class="card-head"><h2 class="card-title">Incident</h2></div>
+    <dl class="info-list">
+      <div><dt>Crime type</dt><dd>{{ d.crime_type }}</dd></div>
+      <div><dt>Date &amp; time</dt><dd>{{ d.incident_date }} {{ d.incident_time }}</dd></div>
+      <div><dt>Place</dt><dd>{{ d.location or '—' }}</dd></div>
+      <div><dt>Description</dt><dd>{{ d.description }}</dd></div>
+      <div><dt>Station</dt><dd>{{ d.station_name }}</dd></div>
+      <div><dt>Registered by</dt><dd>{{ d.registered_name }} · {{ d.created_at|dt }}</dd></div>
+      <div><dt>Detective</dt><dd>{{ d.detective_name or 'Not yet assigned – waiting for the Station Commander' }}</dd></div>
+    </dl>
+  </section>
+
+  {% if show_investigation %}
+  <section class="card">
+    <div class="card-head"><h2 class="card-title">Suspects <span class="count">{{ suspects|length }}</span></h2></div>
+    <ul class="item-list">
+      {% for s in suspects %}
+      <li><div class="item-top"><strong>{{ s.full_name }}</strong><span class="badge badge-info">{{ s.status }}</span></div>
+          <div class="small muted">{{ s.id_no|idfmt if s.id_no else 'ID unknown' }}{% if s.notes %} · {{ s.notes }}{% endif %}</div></li>
+      {% else %}<li class="muted small">No suspects recorded.</li>{% endfor %}
+    </ul>
+  </section>
+
+  <section class="card">
+    <div class="card-head"><h2 class="card-title">Witness Statements <span class="count">{{ witnesses|length }}</span></h2></div>
+    <ul class="item-list">
+      {% for w in witnesses %}
+      <li><div class="item-top"><strong>{{ w.full_name }}</strong><span class="small muted">{{ w.statement_date }}</span></div>
+          <p class="statement">{{ w.statement }}</p></li>
+      {% else %}<li class="muted small">No statements recorded.</li>{% endfor %}
+    </ul>
+  </section>
+
+  <section class="card">
+    <div class="card-head"><h2 class="card-title">Evidence <span class="count">{{ evidence|length }}</span></h2></div>
+    <ul class="evidence-list">
+      {% for e in evidence %}
+      <li>
+        <span class="ev-icon"><i data-lucide="{{ 'video' if e.filename.lower().endswith(('.mp4','.mov')) else 'image' if e.filename.lower().endswith(('.jpg','.jpeg','.png','.gif')) else 'file-text' }}"></i></span>
+        <div><div class="ev-name">{{ e.filename }}</div><div class="ev-date">{{ e.description or '' }} · {{ e.created_at|dt('%d %b %Y') }}</div></div>
+        <div class="ev-actions"><a class="btn btn-outline btn-xs" href="{{ url_for('common.evidence_file', evidence_id=e.id) }}" target="_blank">View</a></div>
+      </li>
+      {% else %}<li class="muted small">No evidence uploaded.</li>{% endfor %}
+    </ul>
+  </section>
+
+  <section class="card span-3">
+    <div class="card-head"><h2 class="card-title">Case Notes</h2></div>
+    <ul class="item-list">
+      {% for n in notes %}
+      <li><p class="note-text">{{ n.note }}</p><div class="small muted">{{ n.author }} · {{ n.created_at|dt }}</div></li>
+      {% else %}<li class="muted small">No notes yet.</li>{% endfor %}
+    </ul>
+  </section>
+  {% endif %}
+
+  <section class="card span-3">
+    <div class="card-head"><h2 class="card-title">Docket History</h2><span class="muted-note"><i data-lucide="lock"></i>From the audit log – cannot be edited</span></div>
+    {{ ui.timeline(history) }}
+  </section>
+</div>

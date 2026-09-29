@@ -1,0 +1,64 @@
+{% extends 'layout.html' %}
+{% block title %}Check-in Queue{% endblock %}
+{% block content %}
+{% call ui.header('Check-in Queue', 'People who checked in at the kiosk and are waiting. Each one must end in a registered case or a logged refusal.') %}
+  <a href="{{ url_for('csc.register') }}" class="btn btn-primary"><i data-lucide="plus"></i>Register Walk-in</a>
+{% endcall %}
+
+<section class="card">
+  <div class="card-head">
+    <h2 class="card-title">Waiting now <span class="count">{{ checkins|length }}</span></h2>
+    <span class="muted-note"><i data-lucide="clock"></i>Longest wait first</span>
+  </div>
+  {% if checkins %}
+  <div class="table-wrap">
+    <table class="table">
+      <thead><tr><th>Reference</th><th>Name</th><th>ID Number</th><th>Checked in</th><th>Reason</th><th>Language</th><th>Waiting</th><th>Actions</th></tr></thead>
+      <tbody>
+        {% for c in checkins %}
+        <tr>
+          <td>{{ c.ref }}</td>
+          <td><strong>{{ c.full_name }}</strong></td>
+          <td class="nowrap">{{ c.id_no|idfmt }}</td>
+          <td>{{ c.created_at|dt('%H:%M') }}</td>
+          <td>{{ c.reason }}</td>
+          <td>{{ c.language }}</td>
+          <td>{{ ui.wait(c.wait) }}</td>
+          <td class="actions">
+            <a href="{{ url_for('csc.register', checkin=c.ref) }}" class="btn btn-primary btn-sm">Register Case</a>
+            <button type="button" class="btn btn-outline btn-sm" data-modal="refuseModal" data-ref="{{ c.ref }}" data-name="{{ c.full_name }}">Log Refusal</button>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}{{ ui.empty('coffee', 'The queue is empty. Nobody is waiting.') }}{% endif %}
+</section>
+
+<div class="modal-backdrop" id="refuseModal">
+  <form class="modal" method="post" action="{{ url_for('csc.refuse') }}">
+    {{ ui.csrf() }}
+    <div class="modal-head">
+      <h3 class="card-title">Log Refusal</h3>
+      <button type="button" class="icon-btn js-close" aria-label="Close"><i data-lucide="x"></i></button>
+    </div>
+    <div class="modal-body">
+      <p class="modal-note">You are not opening a docket for <strong data-fill="name"></strong> (<span data-fill="ref"></span>). This is saved with your name and the time, and the Station Commander can see it.</p>
+      <input type="hidden" name="ref" data-fill="ref">
+      <div class="field" style="margin-bottom:14px">
+        <label for="reason">Reason <span class="req">*</span></label>
+        {{ ui.select('reason', reasons, '', 'Select a reason', attrs='required') }}
+      </div>
+      <div class="field">
+        <label for="notes">Notes <small class="hint">(required if "Other")</small></label>
+        <textarea name="notes" id="notes" class="textarea" placeholder="What did you tell the complainant? Where were they referred?"></textarea>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button type="button" class="btn btn-outline js-close">Cancel</button>
+      <button type="submit" class="btn btn-danger">Log Refusal</button>
+    </div>
+  </form>
+</div>
+{% endblock %}

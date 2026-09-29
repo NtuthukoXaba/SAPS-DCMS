@@ -1,0 +1,31 @@
+{% extends 'layout.html' %}
+{% block title %}My Dockets{% endblock %}
+{% block content %}
+{% call ui.header('My Dockets', 'Cases you registered and where they stand now') %}
+  <a href="{{ url_for('csc.register') }}" class="btn btn-primary"><i data-lucide="plus"></i>Register New Case</a>
+{% endcall %}
+<nav class="filter-tabs">
+  {% for s in ['All'] + statuses %}
+  <a href="{{ url_for('csc.dockets', status=s) }}" class="{{ 'active' if status == s }}">{{ s }} <span>{{ counts.get(s, 0) }}</span></a>
+  {% endfor %}
+</nav>
+<section class="card">
+  {% if dockets %}
+  <div class="table-wrap">
+    <table class="table">
+      <thead><tr><th>Docket No.</th><th>Registered</th><th>Crime Type</th><th>Complainant</th><th>Priority</th><th>Status</th><th>Detective</th><th></th></tr></thead>
+      <tbody>
+        {% for d in dockets %}
+        <tr data-href="{{ url_for('csc.docket', number=d.number) }}" class="row-link">
+          <td><a href="{{ url_for('csc.docket', number=d.number) }}" class="link">{{ d.number }}</a></td>
+          <td>{{ d.created_at|dt }}</td><td>{{ d.crime_type }}</td><td>{{ d.complainant }}</td>
+          <td>{{ ui.prio(d.priority) }}</td><td>{{ ui.status(d.status) }}</td><td>{{ d.detective or '—' }}</td>
+          <td><a href="{{ url_for('csc.docket', number=d.number) }}" class="btn btn-outline btn-sm">View</a></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}{{ ui.empty('folder-open', 'No dockets with status "' ~ status ~ '".') }}{% endif %}
+</section>
+{% endblock %}

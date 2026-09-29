@@ -1,0 +1,38 @@
+{# Assign / reassign a docket to a detective. Open with data-modal="assignModal" data-number="…" data-priority="…" #}
+<div class="modal-backdrop" id="assignModal">
+  <form class="modal" method="post" action="{{ url_for('commander.assign') }}">
+    {{ ui.csrf() }}
+    <input type="hidden" name="number" data-fill="number">
+    <div class="modal-head">
+      <h3 class="card-title">Assign Docket <span class="muted" data-fill="number"></span></h3>
+      <button type="button" class="icon-btn js-close" aria-label="Close"><i data-lucide="x"></i></button>
+    </div>
+    <div class="modal-body">
+      <div class="field" style="margin-bottom:14px">
+        <label for="detective_id">Investigating Officer <span class="req">*</span></label>
+        <div class="control">
+          <select id="detective_id" name="detective_id" class="select" required>
+            <option value="">Select a detective</option>
+            {% for det in detectives if det.status == 'Active' %}
+            <option value="{{ det.id }}">{{ det.full_name }} ({{ det.open_cases }} open case{{ 's' if det.open_cases != 1 }})</option>
+            {% endfor %}
+          </select>
+          <span class="suffix"><i data-lucide="chevron-down"></i></span>
+        </div>
+      </div>
+      <div class="field">
+        <label for="priority">Priority</label>
+        <div class="control">
+          <select id="priority" name="priority" class="select" data-fill="priority">
+            {% for p in ['High', 'Medium', 'Low'] %}<option>{{ p }}</option>{% endfor %}
+          </select>
+          <span class="suffix"><i data-lucide="chevron-down"></i></span>
+        </div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button type="button" class="btn btn-outline js-close">Cancel</button>
+      <button type="submit" class="btn btn-primary">Assign Detective</button>
+    </div>
+  </form>
+</div>

@@ -1,0 +1,28 @@
+{% extends 'layout.html' %}
+{% block title %}Detectives{% endblock %}
+{% block content %}
+{{ ui.header('Detectives', 'Workload and open cases for each detective at ' ~ me.station) }}
+<section class="card">
+  <div class="table-wrap">
+    <table class="table">
+      <thead><tr><th>Detective</th><th>Status</th><th>Open cases</th><th>Stalled</th><th>Closed</th><th>Current cases</th></tr></thead>
+      <tbody>
+        {% for det in detectives %}
+        <tr>
+          <td><strong>{{ det.full_name }}</strong></td>
+          <td>{{ ui.status(det.status) }}</td>
+          <td>{{ det.open_cases }}</td>
+          <td>{% if det.stalled %}<span class="badge badge-high">{{ det.stalled }}</span>{% else %}0{% endif %}</td>
+          <td>{{ det.closed_cases }}</td>
+          <td style="white-space:normal">
+            {% for c in cases if c.detective_id == det.id %}
+            <a class="link small" href="{{ url_for('commander.docket', number=c.number) }}">{{ c.number }}</a> <span class="small muted">({{ c.crime_type }}, {{ c.status|lower }})</span>{{ ', ' if not loop.last }}
+            {% else %}<span class="muted small">None</span>{% endfor %}
+          </td>
+        </tr>
+        {% else %}<tr><td colspan="6">{{ ui.empty('users', 'No detectives at this station yet.') }}</td></tr>{% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+{% endblock %}

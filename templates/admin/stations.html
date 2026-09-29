@@ -1,0 +1,24 @@
+{% extends 'layout.html' %}
+{% block title %}Stations{% endblock %}
+{% block content %}
+{{ ui.header('Stations', 'Police stations using the system') }}
+<div class="dash-grid">
+  <section class="card span-2">
+    <div class="table-wrap"><table class="table">
+      <thead><tr><th>Station</th><th>Province</th><th>Users</th><th>Dockets</th><th>Open dockets</th><th>Added</th></tr></thead>
+      <tbody>{% for s in stations %}
+        <tr><td><strong>{{ s.name }}</strong></td><td>{{ s.province }}</td><td>{{ s.users }}</td><td>{{ s.dockets }}</td><td>{{ s.open_dockets }}</td><td>{{ s.created_at|dt('%d %b %Y') }}</td></tr>
+      {% endfor %}</tbody>
+    </table></div>
+  </section>
+  <section class="card">
+    <div class="card-head"><h2 class="card-title">Add Station</h2></div>
+    <form method="post" class="form-pad stack">
+      {{ ui.csrf() }}
+      <div class="field"><label for="name">Station name <span class="req">*</span></label><input id="name" name="name" class="input" required placeholder="e.g. Akasia"></div>
+      <div class="field"><label for="province">Province</label>{{ ui.select('province', ['Eastern Cape','Free State','Gauteng','KwaZulu-Natal','Limpopo','Mpumalanga','North West','Northern Cape','Western Cape'], 'Gauteng') }}</div>
+      <button class="btn btn-primary" type="submit"><i data-lucide="plus"></i>Add Station</button>
+    </form>
+  </section>
+</div>
+{% endblock %}

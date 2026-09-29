@@ -1,0 +1,14 @@
+{% extends 'layout.html' %}
+{% block title %}Evidence{% endblock %}
+{% block content %}
+{{ ui.header('Evidence', 'All evidence across your cases') }}
+<section class="card">
+  <ul class="evidence-list">
+    {% for e in rows %}
+    <li><span class="ev-icon"><i data-lucide="{{ 'video' if e.filename.lower().endswith(('.mp4','.mov')) else 'image' if e.filename.lower().endswith(('.jpg','.jpeg','.png','.gif')) else 'file-text' }}"></i></span>
+      <div><div class="ev-name">{{ e.filename }}</div><div class="ev-date"><a class="link" href="{{ url_for('detective.case', number=e.number, tab='evidence') }}">{{ e.number }}</a> · {{ e.description or '' }} · {{ e.created_at|dt('%d %b %Y') }}</div></div>
+      <div class="ev-actions"><a class="btn btn-outline btn-xs" target="_blank" href="{{ url_for('common.evidence_file', evidence_id=e.id) }}">View</a></div></li>
+    {% else %}<li>{{ ui.empty('file-search', 'No evidence on your cases.') }}</li>{% endfor %}
+  </ul>
+</section>
+{% endblock %}

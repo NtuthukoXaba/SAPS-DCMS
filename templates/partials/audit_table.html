@@ -1,0 +1,13 @@
+{% if rows %}
+<div class="table-wrap">
+  <table class="table audit">
+    <thead><tr><th>#</th><th>Time</th><th>User</th><th>Action</th><th>Record</th><th>Details</th><th>IP</th></tr></thead>
+    <tbody>
+      {% for a in rows %}
+      <tr><td class="muted">{{ a.id }}</td><td class="nowrap">{{ a.created_at|dt('%d %b %H:%M:%S') }}</td><td>{{ a.actor }}</td><td>{{ a.action }}</td>
+          <td>{{ a.record or '—' }}</td><td style="white-space:normal">{{ a.details or '' }}</td><td class="muted">{{ a.ip or '—' }}</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}{{ ui.empty('fingerprint', 'No audit entries match.') }}{% endif %}

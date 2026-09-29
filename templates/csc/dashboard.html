@@ -1,0 +1,86 @@
+{% extends 'layout.html' %}
+{% block title %}CSC Dashboard{% endblock %}
+{% block content %}
+<div class="welcome">
+  <div>
+    <h1 class="page-title">Good day, {{ me.name }}</h1>
+    <p class="page-sub"><span class="js-today"></span>Community Service Centre, {{ me.station }}</p>
+  </div>
+  <div class="welcome-actions">
+    <a href="{{ url_for('csc.search') }}" class="btn btn-outline"><i data-lucide="search"></i>Search Dockets</a>
+    <a href="{{ url_for('csc.register') }}" class="btn btn-primary"><i data-lucide="plus"></i>Register New Case</a>
+  </div>
+</div>
+
+<section class="stats">
+  {{ ui.stat('users', 'i-orange', stats.waiting, 'Waiting in<br>check-in queue') }}
+  {{ ui.stat('file-plus', 'i-green', stats.today, 'Cases I registered<br>today') }}
+  {{ ui.stat('file-text', 'i-purple', stats.month, 'My dockets<br>this month') }}
+  {{ ui.stat('user-x', 'i-red', stats.refusals, 'Refusals I logged<br>today') }}
+</section>
+
+<div class="dash-grid">
+  <section class="card span-2">
+    <div class="card-head">
+      <h2 class="card-title">Check-in Queue <span class="count">{{ stats.waiting }} waiting</span></h2>
+      <a href="{{ url_for('csc.queue') }}" class="link">View full queue</a>
+    </div>
+    {% if checkins %}
+    <div class="table-wrap">
+      <table class="table">
+        <thead><tr><th>Reference</th><th>Name</th><th>Reason</th><th>Waiting</th><th>Actions</th></tr></thead>
+        <tbody>
+          {% for c in checkins %}
+          <tr>
+            <td>{{ c.ref }}</td><td>{{ c.full_name }}</td><td>{{ c.reason }}</td><td>{{ ui.wait(c.wait) }}</td>
+            <td class="actions">
+              <a href="{{ url_for('csc.register', checkin=c.ref) }}" class="btn btn-primary btn-sm">Register</a>
+              <a href="{{ url_for('csc.queue') }}" class="btn btn-outline btn-sm">Refuse</a>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}{{ ui.empty('coffee', 'No one is waiting right now.') }}{% endif %}
+  </section>
+
+  <section class="card">
+    <div class="card-head"><h2 class="card-title">Quick Actions</h2></div>
+    <div class="quick-list">
+      <a href="{{ url_for('csc.register') }}" class="quick-item"><span class="qi i-sky"><i data-lucide="square-pen"></i></span><div><strong>Register new case</strong><small>Capture complainant and incident</small></div><i data-lucide="chevron-right"></i></a>
+      <a href="{{ url_for('csc.queue') }}" class="quick-item"><span class="qi i-orange"><i data-lucide="users"></i></span><div><strong>Check-in queue</strong><small>Register or log a refusal</small></div><i data-lucide="chevron-right"></i></a>
+      <a href="{{ url_for('csc.dockets') }}" class="quick-item"><span class="qi i-purple"><i data-lucide="file-text"></i></span><div><strong>My dockets</strong><small>Cases you registered</small></div><i data-lucide="chevron-right"></i></a>
+      <a href="{{ url_for('csc.search') }}" class="quick-item"><span class="qi i-green"><i data-lucide="search"></i></span><div><strong>Search dockets</strong><small>By number, name or ID</small></div><i data-lucide="chevron-right"></i></a>
+    </div>
+  </section>
+
+  <section class="card span-2">
+    <div class="card-head"><h2 class="card-title">Dockets I Registered Recently</h2><a href="{{ url_for('csc.dockets') }}" class="link">View all</a></div>
+    {% if recent %}
+    <div class="table-wrap">
+      <table class="table">
+        <thead><tr><th>Docket No.</th><th>Registered</th><th>Crime Type</th><th>Complainant</th><th>Status</th></tr></thead>
+        <tbody>
+          {% for d in recent %}
+          <tr class="row-link" data-href="{{ url_for('csc.docket', number=d.number) }}">
+            <td><a href="{{ url_for('csc.docket', number=d.number) }}" class="link">{{ d.number }}</a></td>
+            <td>{{ d.created_at|dt }}</td><td>{{ d.crime_type }}</td><td>{{ d.complainant }}</td><td>{{ ui.status(d.status) }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}{{ ui.empty('folder-open', 'You have not registered any dockets yet.') }}{% endif %}
+  </section>
+
+  <section class="card">
+    <div class="card-head"><h2 class="card-title">Reminders</h2></div>
+    <ul class="timeline">
+      <li class="red"><div class="t-title">Every check-in must end in a docket or a logged refusal</div><div class="t-date">Check-ins left waiting are flagged to the Station Commander</div></li>
+      <li><div class="t-title">Give the complainant their docket number</div><div class="t-date">They can track the case on the homepage with it</div></li>
+      <li class="green"><div class="t-title">Everything you do is recorded</div><div class="t-date">The audit log cannot be edited or deleted</div></li>
+    </ul>
+  </section>
+</div>
+{% endblock %}

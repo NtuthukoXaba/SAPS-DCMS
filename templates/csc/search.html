@@ -1,0 +1,47 @@
+{% extends 'layout.html' %}
+{% block title %}Search Dockets{% endblock %}
+{% block content %}
+{{ ui.header('Search Dockets', "Find a docket at your station to answer a complainant's question") }}
+<form class="card search-card" method="get">
+  <div class="field grow">
+    <label for="q">Docket number, complainant name or ID number</label>
+    <div class="control">
+      <input id="q" name="q" class="input input-icon" value="{{ q }}" placeholder="e.g. DCMS-{{ year }}-0001, Dlamini or 9001011234088" autofocus>
+      <span class="prefix"><i data-lucide="search"></i></span>
+    </div>
+  </div>
+  <div class="field">
+    <label for="crime">Crime type</label>
+    {{ ui.select('crime', crime_types, crime, 'All crime types') }}
+  </div>
+  <div class="search-btns">
+    <button class="btn btn-primary" type="submit">Search</button>
+    {% if q or crime %}<a href="{{ url_for('csc.search') }}" class="btn btn-outline">Clear</a>{% endif %}
+  </div>
+</form>
+
+{% if results is none %}
+<div class="card">{{ ui.empty('search', 'Type a docket number, name or ID number above to search.') }}</div>
+{% elif results %}
+<section class="card">
+  <div class="card-head"><h2 class="card-title">{{ results|length }} result{{ 's' if results|length != 1 }}</h2></div>
+  <div class="table-wrap">
+    <table class="table">
+      <thead><tr><th>Docket No.</th><th>Registered</th><th>Crime Type</th><th>Complainant</th><th>Status</th><th>Detective</th><th></th></tr></thead>
+      <tbody>
+        {% for d in results %}
+        <tr data-href="{{ url_for('csc.docket', number=d.number) }}" class="row-link">
+          <td><a href="{{ url_for('csc.docket', number=d.number) }}" class="link">{{ d.number }}</a></td>
+          <td>{{ d.created_at|dt('%d %b %Y') }}</td><td>{{ d.crime_type }}</td><td>{{ d.complainant }}</td>
+          <td>{{ ui.status(d.status) }}</td><td>{{ d.detective or '—' }}</td>
+          <td><a href="{{ url_for('csc.docket', number=d.number) }}" class="btn btn-outline btn-sm">View</a></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+{% else %}
+<div class="card">{{ ui.empty('file-x', 'No dockets match your search.') }}</div>
+{% endif %}
+{% endblock %}

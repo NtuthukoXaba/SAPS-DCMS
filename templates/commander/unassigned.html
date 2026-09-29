@@ -1,0 +1,31 @@
+{% extends 'layout.html' %}
+{% block title %}Unassigned Dockets{% endblock %}
+{% block content %}
+{{ ui.header('Unassigned Dockets', 'Review and assign dockets to detectives') }}
+<section class="stats">
+  {{ ui.stat('file-text', 'i-purple', stats.unassigned, 'Unassigned<br>Dockets') }}
+  {{ ui.stat('clipboard-list', 'i-orange', stats.assigned_today, 'Assigned<br>Today') }}
+  {{ ui.stat('clipboard-check', 'i-green', stats.month, 'Total Dockets<br>This Month') }}
+  {{ ui.stat('archive', 'i-sky', stats.closed_month, 'Closed<br>This Month') }}
+</section>
+<section class="card">
+  {% if dockets %}
+  <div class="table-wrap">
+    <table class="table">
+      <thead><tr><th>Docket No.</th><th>Date Registered</th><th>Crime Type</th><th>Complainant</th><th>Registered by</th><th>Waiting</th><th>Priority</th><th>Actions</th></tr></thead>
+      <tbody>
+        {% for d in dockets %}
+        <tr>
+          <td><a class="link" href="{{ url_for('commander.docket', number=d.number) }}">{{ d.number }}</a></td>
+          <td>{{ d.created_at|dt('%Y-%m-%d') }}</td><td>{{ d.crime_type }}</td><td>{{ d.complainant }}</td>
+          <td>{{ d.registered_name }}</td><td>{{ d.created_at|ago }}</td><td>{{ ui.prio(d.priority) }}</td>
+          <td><button class="btn btn-primary btn-sm" data-modal="assignModal" data-number="{{ d.number }}" data-priority="{{ d.priority }}">Assign</button></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}{{ ui.empty('circle-check', 'There are no unassigned dockets. Well done.') }}{% endif %}
+</section>
+{% include 'partials/assign_modal.html' %}
+{% endblock %}

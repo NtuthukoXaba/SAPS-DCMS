@@ -1,0 +1,13 @@
+{% extends 'layout.html' %}
+{% block title %}Witness Statements{% endblock %}
+{% block content %}
+{{ ui.header('Witness Statements', 'All statements across your cases') }}
+<section class="card">
+  <ul class="item-list">
+    {% for w in rows %}
+    <li><div class="item-top"><strong>{{ w.full_name }}</strong><span class="small muted"><a class="link" href="{{ url_for('detective.case', number=w.number, tab='witnesses') }}">{{ w.number }}</a> · {{ w.crime_type }} · {{ w.statement_date }}</span></div>
+      <p class="statement">{{ w.statement }}</p></li>
+    {% else %}<li>{{ ui.empty('file-signature', 'No statements recorded on your cases.') }}</li>{% endfor %}
+  </ul>
+</section>
+{% endblock %}

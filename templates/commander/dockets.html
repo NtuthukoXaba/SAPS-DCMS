@@ -1,0 +1,33 @@
+{% extends 'layout.html' %}
+{% block title %}All Dockets{% endblock %}
+{% block content %}
+{{ ui.header('All Dockets', 'Every docket at ' ~ me.station ~ ' Police Station') }}
+<form class="card filters" method="get">
+  <div class="field grow"><label for="q">Search</label><input id="q" name="q" class="input" value="{{ f.q }}" placeholder="Docket number, complainant or ID"></div>
+  <div class="field"><label for="status">Status</label>{{ ui.select('status', statuses, f.status, 'All statuses') }}</div>
+  <div class="field"><label for="crime">Crime type</label>{{ ui.select('crime', crime_types, f.crime, 'All crime types') }}</div>
+  <div class="field"><label for="detective">Detective</label>
+    {{ ui.select('detective', det_options, f.detective, 'All detectives') }}</div>
+  <button class="btn btn-primary" type="submit">Filter</button>
+  {% if f.values()|select|list %}<a class="btn btn-outline" href="{{ url_for('commander.dockets') }}">Clear</a>{% endif %}
+</form>
+<section class="card">
+  <div class="card-head"><h2 class="card-title">{{ dockets|length }} docket{{ 's' if dockets|length != 1 }}</h2></div>
+  {% if dockets %}
+  <div class="table-wrap">
+    <table class="table">
+      <thead><tr><th>Docket No.</th><th>Registered</th><th>Crime Type</th><th>Complainant</th><th>Priority</th><th>Status</th><th>Detective</th><th>Last activity</th></tr></thead>
+      <tbody>
+        {% for d in dockets %}
+        <tr class="row-link" data-href="{{ url_for('commander.docket', number=d.number) }}">
+          <td><a class="link" href="{{ url_for('commander.docket', number=d.number) }}">{{ d.number }}</a></td>
+          <td>{{ d.created_at|dt('%d %b %Y') }}</td><td>{{ d.crime_type }}</td><td>{{ d.complainant }}</td>
+          <td>{{ ui.prio(d.priority) }}</td><td>{{ ui.status(d.status) }}</td><td>{{ d.detective or '—' }}</td><td>{{ d.updated_at|ago }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}{{ ui.empty('file-x', 'No dockets match these filters.') }}{% endif %}
+</section>
+{% endblock %}

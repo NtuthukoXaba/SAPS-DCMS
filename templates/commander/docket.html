@@ -1,0 +1,44 @@
+{% extends 'layout.html' %}
+{% block title %}{{ d.number }}{% endblock %}
+{% set active_nav = 'commander.dockets' %}
+{% block content %}
+<a href="{{ url_for('commander.dockets') }}" class="back-link"><i data-lucide="arrow-left"></i>Back to All Dockets</a>
+<div class="welcome">
+  <div>
+    <h1 class="page-title docket-title">Docket No: {{ d.number }} {{ ui.status(d.status) }}</h1>
+    <p class="page-sub">{{ d.crime_type }} · Registered {{ d.created_at|dt }} · Priority {{ ui.prio(d.priority) }} · Progress {{ d.progress }}%</p>
+  </div>
+  <div class="welcome-actions">
+    {% if d.status != 'Closed' %}
+    <button class="btn btn-outline" data-modal="assignModal" data-number="{{ d.number }}" data-priority="{{ d.priority }}"><i data-lucide="user-plus"></i>{{ 'Reassign' if d.detective_id else 'Assign' }} Detective</button>
+    <form method="post" action="{{ url_for('commander.priority', number=d.number) }}" class="gap-row">
+      {{ ui.csrf() }}
+      <div class="control sm">{{ ui.select('priority', ['High','Medium','Low'], d.priority, cls='select select-sm') }}</div>
+      <button class="btn btn-outline btn-sm" type="submit">Set priority</button>
+    </form>
+    {% endif %}
+  </div>
+</div>
+
+{% if d.status == 'Ready for closure' %}
+<section class="card" style="margin-bottom:20px">
+  <div class="card-head"><h2 class="card-title"><i data-lucide="flag"></i> Closure request from {{ d.detective_name }}</h2></div>
+  <form method="post" action="{{ url_for('commander.closure', number=d.number) }}" class="form-pad">
+    {{ ui.csrf() }}
+    <p class="muted small mt-0">Read the closing summary in the case notes below, then approve or send it back with instructions.</p>
+    <div class="field" style="margin-bottom:14px">
+      <label for="comment">Comment <small class="hint">(required when sending back)</small></label>
+      <textarea id="comment" name="comment" class="textarea" placeholder="e.g. Please obtain a statement from the second neighbour before closing."></textarea>
+    </div>
+    <div class="gap-row">
+      <button class="btn btn-primary" name="decision" value="approve" type="submit"><i data-lucide="circle-check"></i>Approve &amp; Close Case</button>
+      <button class="btn btn-outline" name="decision" value="return" type="submit"><i data-lucide="undo-2"></i>Send Back to Detective</button>
+    </div>
+  </form>
+</section>
+{% endif %}
+
+{% set show_investigation = True %}
+{% include 'partials/docket_info.html' %}
+{% include 'partials/assign_modal.html' %}
+{% endblock %}

@@ -1,0 +1,73 @@
+{% extends 'layout.html' %}
+{% block title %}Detective Dashboard{% endblock %}
+{% block content %}
+<div class="welcome">
+  <div>
+    <h1 class="page-title">Good day, {{ me.name }}</h1>
+    <p class="page-sub"><span class="js-today"></span>Detective Branch, {{ me.station }}</p>
+  </div>
+  <div class="welcome-actions">
+    <a href="{{ url_for('detective.cases') }}" class="btn btn-primary"><i data-lucide="folder-open"></i>Open My Cases</a>
+  </div>
+</div>
+
+<section class="stats">
+  {{ ui.stat('folder-open', 'i-sky', stats.open, 'My open<br>cases') }}
+  {{ ui.stat('flame', 'i-red', stats.high, 'High priority<br>cases') }}
+  {{ ui.stat('alarm-clock', 'i-orange', stats.idle, 'Need an update<br>(' ~ idle_days ~ '+ days idle)') }}
+  {{ ui.stat('circle-check', 'i-green', stats.closure, 'Sent for<br>closure') }}
+</section>
+
+<div class="dash-grid">
+  <section class="card span-2">
+    <div class="card-head"><h2 class="card-title">My Assigned Cases</h2><a href="{{ url_for('detective.cases') }}" class="link">View all</a></div>
+    {% if cases %}
+    <div class="table-wrap">
+      <table class="table">
+        <thead><tr><th>Docket No.</th><th>Crime Type</th><th>Priority</th><th>Status</th><th>Last Activity</th><th>Progress</th><th></th></tr></thead>
+        <tbody>
+          {% for c in cases %}
+          <tr class="row-link" data-href="{{ url_for('detective.case', number=c.number) }}">
+            <td><a class="link" href="{{ url_for('detective.case', number=c.number) }}">{{ c.number }}</a></td>
+            <td>{{ c.crime_type }}</td><td>{{ ui.prio(c.priority) }}</td><td>{{ ui.status(c.status) }}</td>
+            <td class="{{ 'warn' if c.idle >= idle_days and c.status != 'Ready for closure' }}">{{ c.updated_at|ago }}</td>
+            <td class="nowrap"><div class="mini-progress"><i style="width:{{ c.progress }}%"></i></div><small>{{ c.progress }}%</small></td>
+            <td><a href="{{ url_for('detective.case', number=c.number) }}" class="btn btn-outline btn-sm">Open</a></td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}{{ ui.empty('folder-open', 'No cases are assigned to you.') }}{% endif %}
+  </section>
+
+  <section class="card">
+    <div class="card-head"><h2 class="card-title">Needs Attention</h2></div>
+    <ul class="alert-list compact">
+      {% for c in cases if c.idle >= idle_days and c.status in ('Assigned', 'Under investigation') %}
+      <li><span class="al-icon i-orange"><i data-lucide="alarm-clock"></i></span><div><strong>{{ c.number }}</strong><small>No update for {{ c.idle }} days – the commander will be alerted at {{ config.STALLED_DAYS }}</small></div>
+        <a href="{{ url_for('detective.case', number=c.number) }}" class="btn btn-outline btn-sm">Update</a></li>
+      {% else %}<li class="muted small">All your cases are up to date.</li>{% endfor %}
+    </ul>
+  </section>
+
+  <section class="card span-2">
+    <div class="card-head"><h2 class="card-title">Newly Assigned to Me</h2></div>
+    <ul class="alert-list">
+      {% for c in new %}
+      <li><span class="al-icon i-sky"><i data-lucide="file-plus"></i></span><div><strong>{{ c.number }} · {{ c.crime_type }} · {{ c.complainant }}</strong><small>Assigned {{ c.assigned_at|ago }}</small></div>
+        <a href="{{ url_for('detective.case', number=c.number) }}" class="btn btn-primary btn-sm">Start</a></li>
+      {% else %}<li class="muted small">No new cases.</li>{% endfor %}
+    </ul>
+  </section>
+
+  <section class="card">
+    <div class="card-head"><h2 class="card-title">My Recent Activity</h2></div>
+    <ul class="timeline">
+      {% for a in activity %}
+      <li class="{{ 'green' if 'UPLOAD' in a.action else '' }}"><div class="t-title">{{ a.action|replace('_',' ')|title }} · {{ a.record }}</div><div class="t-date">{{ a.details }} · {{ a.created_at|ago }}</div></li>
+      {% else %}<li><div class="t-title muted">No activity yet.</div></li>{% endfor %}
+    </ul>
+  </section>
+</div>
+{% endblock %}

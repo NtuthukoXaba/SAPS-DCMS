@@ -1,0 +1,43 @@
+{% extends 'layout.html' %}
+{% block title %}Refusals & Check-ins{% endblock %}
+{% block content %}
+{{ ui.header('Refusals & Check-ins', 'Make sure nobody is turned away without a recorded reason') }}
+<div class="stack">
+  <section class="card">
+    <div class="card-head"><h2 class="card-title">Unmatched Check-ins <span class="count">{{ unmatched|length }}</span></h2>
+      <span class="muted-note"><i data-lucide="info"></i>Waiting more than {{ config.UNMATCHED_HOURS }} hours with no docket or refusal</span></div>
+    {% if unmatched %}
+    <div class="table-wrap"><table class="table">
+      <thead><tr><th>Reference</th><th>Name</th><th>ID Number</th><th>Reason</th><th>Checked in</th><th>Waiting</th></tr></thead>
+      <tbody>{% for c in unmatched %}
+        <tr><td>{{ c.ref }}</td><td>{{ c.full_name }}</td><td class="nowrap">{{ c.id_no|idfmt }}</td><td>{{ c.reason }}</td><td>{{ c.created_at|dt }}</td><td><span class="badge badge-high">{{ c.hours }} h</span></td></tr>
+      {% endfor %}</tbody>
+    </table></div>
+    {% else %}{{ ui.empty('circle-check', 'No unmatched check-ins.') }}{% endif %}
+  </section>
+
+  <section class="card">
+    <div class="card-head"><h2 class="card-title">Logged Refusals <span class="count">{{ refusals|length }}</span></h2></div>
+    {% if refusals %}
+    <div class="table-wrap"><table class="table">
+      <thead><tr><th>Check-in</th><th>Complainant</th><th>Reason</th><th>Notes</th><th>Officer</th><th>Logged</th></tr></thead>
+      <tbody>{% for r in refusals %}
+        <tr><td>{{ r.ref }}</td><td>{{ r.full_name }}</td><td>{{ r.reason }}</td><td>{{ r.notes or '—' }}</td><td>{{ r.officer }}</td><td>{{ r.created_at|dt }}</td></tr>
+      {% endfor %}</tbody>
+    </table></div>
+    {% else %}{{ ui.empty('circle-check', 'No refusals have been logged.') }}{% endif %}
+  </section>
+
+  <section class="card">
+    <div class="card-head"><h2 class="card-title">Today's Check-ins <span class="count">{{ today|length }}</span></h2></div>
+    {% if today %}
+    <div class="table-wrap"><table class="table">
+      <thead><tr><th>Reference</th><th>Name</th><th>Reason</th><th>Checked in</th><th>Outcome</th><th>Handled by</th></tr></thead>
+      <tbody>{% for c in today %}
+        <tr><td>{{ c.ref }}</td><td>{{ c.full_name }}</td><td>{{ c.reason }}</td><td>{{ c.created_at|dt('%H:%M') }}</td><td>{{ ui.status(c.status) }}</td><td>{{ c.handled_name or '—' }}</td></tr>
+      {% endfor %}</tbody>
+    </table></div>
+    {% else %}{{ ui.empty('users', 'No check-ins yet today.') }}{% endif %}
+  </section>
+</div>
+{% endblock %}

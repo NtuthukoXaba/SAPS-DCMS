@@ -1,0 +1,44 @@
+{% extends 'layout.html' %}
+{% block title %}Station Reports{% endblock %}
+{% block content %}
+{% call ui.header('Station Reports', me.station ~ ' Police Station – all time') %}
+  <button class="btn btn-outline" onclick="window.print()"><i data-lucide="printer"></i>Print</button>
+{% endcall %}
+<section class="stats">
+  {{ ui.stat('files', 'i-sky', metrics.total, 'Dockets<br>registered') }}
+  {{ ui.stat('timer', 'i-orange', metrics.avg_assign ~ ' h', 'Average time<br>to assign') }}
+  {{ ui.stat('calendar-check', 'i-green', metrics.avg_close ~ ' days', 'Average time<br>to close') }}
+  {{ ui.stat('user-x', 'i-red', metrics.refusal_rate ~ '%', 'Check-ins that<br>ended in refusal') }}
+</section>
+<div class="dash-grid">
+  <section class="card">
+    <div class="card-head"><h2 class="card-title">Dockets by Status</h2></div>
+    <div class="workload bars">
+      {% for s, n in by_status.items() %}
+      <div class="wl-row"><span>{{ s }}</span><div class="wl-bar"><i style="width:{{ (n / top_status * 100)|round }}%"></i></div><b>{{ n }}</b></div>
+      {% endfor %}
+    </div>
+  </section>
+  <section class="card">
+    <div class="card-head"><h2 class="card-title">Dockets by Crime Type</h2></div>
+    <div class="workload bars">
+      {% for r in by_crime %}
+      <div class="wl-row"><span>{{ r.crime_type }}</span><div class="wl-bar"><i style="width:{{ (r.n / top_crime * 100)|round }}%"></i></div><b>{{ r.n }}</b></div>
+      {% else %}<p class="wl-note">No dockets yet.</p>{% endfor %}
+    </div>
+  </section>
+  <section class="card">
+    <div class="card-head"><h2 class="card-title">Refusals by Reason</h2></div>
+    <ul class="health">
+      {% for r in by_reason %}<li><span>{{ r.reason }}</span><b>{{ r.n }}</b></li>{% else %}<li><span class="muted">No refusals.</span></li>{% endfor %}
+    </ul>
+  </section>
+  <section class="card span-3">
+    <div class="card-head"><h2 class="card-title">Detective Performance</h2></div>
+    <div class="table-wrap"><table class="table">
+      <thead><tr><th>Detective</th><th>Open cases</th><th>Stalled</th><th>Closed</th></tr></thead>
+      <tbody>{% for det in detectives %}<tr><td>{{ det.full_name }}</td><td>{{ det.open_cases }}</td><td>{{ det.stalled }}</td><td>{{ det.closed_cases }}</td></tr>{% endfor %}</tbody>
+    </table></div>
+  </section>
+</div>
+{% endblock %}

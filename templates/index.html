@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="SAPS-DCMS – a digital case docket management system that guarantees every complaint is recorded and every docket is accountable.">
+  <title>SAPS-DCMS | Digital Case Docket Management System</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <link rel="icon" href="{{ url_for('static', filename='images/logo.svg') }}">
+  <meta name="csrf-token" content="{{ csrf_token() }}">
+</head>
+<body class="public">
+
+<!-- ============ EMERGENCY STRIP ============ -->
+<div class="emergency-strip">
+  <div class="container">
+    <span class="hide-sm">In an emergency, always call first.</span>
+    <div class="nums">
+      <span><i data-lucide="phone"></i>Police: <strong>10111</strong></span>
+      <span><i data-lucide="smartphone"></i>Cellphone: <strong>112</strong></span>
+      <span class="hide-sm"><i data-lucide="message-square"></i>Crime Stop: <strong>08600 10111</strong></span>
+    </div>
+  </div>
+</div>
+
+<!-- ============ HEADER ============ -->
+<header class="site-header">
+  <div class="container">
+    <a href="{{ url_for('public.index') }}" class="logo">
+      <img src="{{ url_for('static', filename='images/logo.svg') }}" alt="SAPS-DCMS logo">
+      <div>
+        <div class="logo-title">SAPS-DCMS</div>
+        <div class="logo-sub">Case Docket Management System</div>
+      </div>
+    </a>
+    <nav class="menu" id="menu">
+      <a href="#how">How it works</a>
+      <a href="#features">Features</a>
+      <a href="#portals">Who uses it</a>
+      <a href="#" class="js-open-track">Track a case</a>
+    </nav>
+    <div class="header-cta">
+      <button class="btn btn-outline js-open-track">Track My Case</button>
+      <a href="{{ url_for('public.login') }}" class="btn btn-primary"><i data-lucide="lock"></i>Staff Login</a>
+      <button class="icon-btn menu-toggle" id="menuToggle" aria-label="Open menu"><i data-lucide="menu"></i></button>
+    </div>
+  </div>
+</header>
+
+<!-- ============ HERO ============ -->
+<section class="hero">
+  <div class="container">
+    <div>
+      <span class="eyebrow"><span class="pulse"></span>Every complaint recorded. Every docket accounted for.</span>
+      <h1>Your case is <span class="accent">heard, tracked</span> and never lost.</h1>
+      <p class="lead">A digital case docket system for police stations. Check in when you arrive, get a case number you can follow, and know that every action on your docket is recorded and cannot be erased.</p>
+      <div class="hero-actions">
+        <button class="btn btn-gold btn-lg js-open-checkin"><i data-lucide="log-in"></i>Check In at Station</button>
+        <button class="btn btn-ghost btn-lg js-open-track"><i data-lucide="search"></i>Track My Case</button>
+      </div>
+      <div class="hero-trust">
+        <div><i data-lucide="shield-check"></i>POPIA-compliant</div>
+        <div><i data-lucide="fingerprint"></i>Tamper-proof audit trail</div>
+        <div><i data-lucide="languages"></i>Multilingual kiosk</div>
+      </div>
+    </div>
+
+    <!-- Case tracker preview -->
+    <div class="hero-visual">
+      <div class="tracker">
+        <div class="floating float-2">
+          <div class="ic i-green"><i data-lucide="shield-check"></i></div>
+          <div><strong>Action logged</strong><span>Evidence uploaded · 11:05</span></div>
+        </div>
+        <div class="tracker-head">
+          <div><small>Docket number</small><strong>DCMS-{{ year }}-0001</strong></div>
+          <span class="badge badge-assigned">In progress</span>
+        </div>
+        <ul class="steps">
+          <li class="done"><div class="step-dot"><i data-lucide="check"></i></div><div><div class="step-title">Checked in at kiosk</div><div class="step-sub">Proof of presence recorded</div></div><div class="step-time">20 May · 22:04</div></li>
+          <li class="done"><div class="step-dot"><i data-lucide="check"></i></div><div><div class="step-title">Case registered</div><div class="step-sub">By Const. J. Mokoena</div></div><div class="step-time">20 May · 22:31</div></li>
+          <li class="done"><div class="step-dot"><i data-lucide="check"></i></div><div><div class="step-title">Detective assigned</div><div class="step-sub">Det. A. Naidoo</div></div><div class="step-time">21 May · 09:15</div></li>
+          <li class="current"><div class="step-dot"><i data-lucide="search"></i></div><div><div class="step-title">Under investigation</div><div class="step-sub">2 witnesses · 3 evidence items</div></div><div class="step-time">Now</div></li>
+          <li><div class="step-dot"><i data-lucide="flag"></i></div><div><div class="step-title">Case closed</div><div class="step-sub">Pending commander review</div></div><div class="step-time">—</div></li>
+        </ul>
+        <div class="floating float-1">
+          <div class="ic i-purple"><i data-lucide="bell-ring"></i></div>
+          <div><strong>No stalled cases</strong><span>Escalation after 14 days idle</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ QUICK ACTIONS ============ -->
+<section class="quick">
+  <div class="container quick-grid">
+    <div class="quick-card js-open-checkin">
+      <div class="ic i-orange"><i data-lucide="user-check"></i></div>
+      <div>
+        <h3>I'm at the station</h3>
+        <p>Check in with your ID number before you speak to an officer. It takes under 30 seconds.</p>
+        <span class="go">Check in now <i data-lucide="arrow-right"></i></span>
+      </div>
+    </div>
+    <div class="quick-card js-open-track">
+      <div class="ic i-sky"><i data-lucide="file-search"></i></div>
+      <div>
+        <h3>I already have a case</h3>
+        <p>Enter your docket number and ID number to see the status and your investigating officer.</p>
+        <span class="go">Track my case <i data-lucide="arrow-right"></i></span>
+      </div>
+    </div>
+    <a href="{{ url_for('public.login') }}" class="quick-card">
+      <div class="ic i-purple"><i data-lucide="badge-check"></i></div>
+      <div>
+        <h3>I'm SAPS personnel</h3>
+        <p>Sign in to register cases, manage dockets, investigate and oversee your station.</p>
+        <span class="go">Staff login <i data-lucide="arrow-right"></i></span>
+      </div>
+    </a>
+  </div>
+</section>
+
+<!-- ============ WHY ============ -->
+<section class="section">
+  <div class="container">
+    <div class="section-head">
+      <div class="kicker">Why this system exists</div>
+      <h2>Closing the gap between reporting a crime and seeing it through</h2>
+      <p>Victims are still turned away at the counter, and once a docket is opened there is often no reliable record of who handled it or where it stands.</p>
+    </div>
+    <div class="stat-band">
+      <div><strong>1,144+</strong><span>police stations required to register every valid complaint (National Instruction 3 of 2011)</span></div>
+      <div><strong>658</strong><span>case dockets confirmed missing nationally over a five-year period</span></div>
+      <div><strong>100%</strong><span>of actions on a docket written to an append-only audit trail</span></div>
+      <div><strong>&lt;30s</strong><span>to check in at the kiosk and create proof of your visit</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ HOW IT WORKS ============ -->
+<section class="section alt" id="how">
+  <div class="container">
+    <div class="section-head">
+      <div class="kicker">How it works</div>
+      <h2>One docket, five accountable steps</h2>
+      <p>Every step is time-stamped and linked to the person who performed it.</p>
+    </div>
+    <div class="flow">
+      <div class="flow-step"><div class="flow-num"><i data-lucide="log-in"></i></div><h4>1. Check in</h4><p>Enter your ID number at the kiosk when you arrive.</p><span class="who">Complainant</span></div>
+      <div class="flow-step"><div class="flow-num"><i data-lucide="square-pen"></i></div><h4>2. Register</h4><p>An officer captures your case and a docket number is issued.</p><span class="who">CSC Official</span></div>
+      <div class="flow-step"><div class="flow-num"><i data-lucide="user-plus"></i></div><h4>3. Assign</h4><p>The commander assigns a detective and sets the priority.</p><span class="who">Station Commander</span></div>
+      <div class="flow-step"><div class="flow-num"><i data-lucide="search"></i></div><h4>4. Investigate</h4><p>Suspects, witnesses, statements and evidence are added.</p><span class="who">Detective</span></div>
+      <div class="flow-step"><div class="flow-num"><i data-lucide="flag"></i></div><h4>5. Close</h4><p>The commander reviews the work and approves closure.</p><span class="who">Station Commander</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ FEATURES ============ -->
+<section class="section" id="features">
+  <div class="container">
+    <div class="section-head">
+      <div class="kicker">Features</div>
+      <h2>Built for accountability at every stage</h2>
+      <p>Designed around the two failures the system sets out to fix: unlawful refusals and lost or stalled dockets.</p>
+    </div>
+    <div class="features">
+      <div class="feature"><div class="ic"><i data-lucide="user-check"></i></div><h3>Kiosk check-in</h3><p>Complainants record their presence before meeting an officer, so no visit goes unrecorded.</p></div>
+      <div class="feature"><div class="ic"><i data-lucide="list-checks"></i></div><h3>Structured refusal logging</h3><p>If a case is not opened, a reason must be chosen and is saved with the officer's ID and time.</p></div>
+      <div class="feature"><div class="ic"><i data-lucide="git-branch"></i></div><h3>Full lifecycle tracking</h3><p>Follow every docket from registration to assignment, investigation and closure.</p></div>
+      <div class="feature"><div class="ic"><i data-lucide="fingerprint"></i></div><h3>Tamper-proof audit trail</h3><p>Every action is appended to a log that no one, not even an administrator, can edit or delete.</p></div>
+      <div class="feature"><div class="ic"><i data-lucide="key-round"></i></div><h3>Role-based access</h3><p>Each user sees only what their role requires, with multi-factor sign-in for privileged users.</p></div>
+      <div class="feature"><div class="ic"><i data-lucide="bell-ring"></i></div><h3>Dashboards & escalation</h3><p>Commanders see refusals, docket ageing and stalled cases, with automatic alerts.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ PORTALS ============ -->
+<section class="section alt" id="portals">
+  <div class="container">
+    <div class="section-head">
+      <div class="kicker">Who uses it</div>
+      <h2>A dedicated workspace for every role</h2>
+      <p>Sign in once and you are taken straight to the tools for your job.</p>
+    </div>
+    <div class="portals">
+      <div class="portal"><div class="ic i-orange"><i data-lucide="square-pen"></i></div><h4>CSC Official</h4><p>Register cases, capture complainant and incident details, or log a structured refusal.</p><a href="{{ url_for('public.login') }}?role=csc" class="btn btn-outline">Officer login</a></div>
+      <div class="portal"><div class="ic i-purple"><i data-lucide="layout-dashboard"></i></div><h4>Station Commander</h4><p>Assign detectives, monitor refusals and stalled cases, approve case closure.</p><a href="{{ url_for('public.login') }}?role=commander" class="btn btn-outline">Commander login</a></div>
+      <div class="portal"><div class="ic i-sky"><i data-lucide="search"></i></div><h4>Detective</h4><p>Work assigned cases: suspects, witnesses, statements, evidence and progress.</p><a href="{{ url_for('public.login') }}?role=detective" class="btn btn-outline">Detective login</a></div>
+      <div class="portal"><div class="ic i-green"><i data-lucide="settings"></i></div><h4>Administrator</h4><p>Manage user accounts, roles and stations, and verify the audit trail.</p><a href="{{ url_for('public.login') }}?role=admin" class="btn btn-outline">Admin login</a></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ CTA ============ -->
+<section class="section" style="padding-bottom:0">
+  <div class="container">
+    <div class="cta">
+      <div>
+        <h2>Already opened a case?</h2>
+        <p>Use your docket number and ID number to see where your case stands and who is investigating it.</p>
+      </div>
+      <div class="hero-actions">
+        <button class="btn btn-gold btn-lg js-open-track"><i data-lucide="search"></i>Track My Case</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ FOOTER ============ -->
+<footer class="site-footer">
+  <div class="container">
+    <div class="footer-grid">
+      <div>
+        <div class="logo">
+          <img src="{{ url_for('static', filename='images/logo.svg') }}" alt="">
+          <div><div class="logo-title">SAPS-DCMS</div><div class="logo-sub">Case Docket Management System</div></div>
+        </div>
+        <p>A digital system that makes sure every complaint is registered and every case docket is tracked, secured and accountable.</p>
+      </div>
+      <div>
+        <h5>Public</h5>
+        <ul><li><a href="#" class="js-open-checkin">Station check-in</a></li><li><a href="#" class="js-open-track">Track a case</a></li><li><a href="#how">How it works</a></li></ul>
+      </div>
+      <div>
+        <h5>Staff</h5>
+        <ul><li><a href="{{ url_for('public.login') }}">Staff login</a></li><li><a href="#portals">User roles</a></li><li><a href="#features">Features</a></li></ul>
+      </div>
+      <div>
+        <h5>Emergency</h5>
+        <ul><li>Police: 10111</li><li>Cellphone: 112</li><li>Crime Stop: 08600 10111</li></ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>© {{ year }} Group 37 · Durban University of Technology</span>
+      
+    </div>
+  </div>
+</footer>
+
+<!-- ============ CHECK-IN MODAL ============ -->
+<div class="modal-backdrop" id="checkinModal">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="checkinTitle">
+    <div class="modal-head">
+      <h3 class="card-title" id="checkinTitle">Station Check-In</h3>
+      <button class="icon-btn js-close" aria-label="Close"><i data-lucide="x"></i></button>
+    </div>
+    <form class="modal-body" id="checkinForm" novalidate>
+      <div class="field kiosk-select">
+        <label for="ciName">Full Name <span class="req">*</span></label>
+        <input id="ciName" class="input" placeholder="Your name and surname" autocomplete="name">
+      </div>
+      <div class="field kiosk-select">
+        <label for="ciId">South African ID Number <span class="req">*</span></label>
+        <input id="ciId" class="input" inputmode="numeric" maxlength="13" placeholder="13-digit ID number">
+      </div>
+      <div class="field kiosk-select">
+        <label for="ciStation">Police station</label>
+        <div class="control">
+          <select id="ciStation" class="select">{% for s in stations %}<option value="{{ s.id }}">{{ s.name }}</option>{% endfor %}</select>
+          <span class="suffix"><i data-lucide="chevron-down"></i></span>
+        </div>
+      </div>
+      <div class="row row-2" style="margin-bottom:0">
+        <div class="field">
+          <label for="ciLang">Preferred language</label>
+          <div class="control">
+            <select id="ciLang" class="select">{% for l in languages %}<option>{{ l }}</option>{% endfor %}</select>
+            <span class="suffix"><i data-lucide="chevron-down"></i></span>
+          </div>
+        </div>
+        <div class="field">
+          <label for="ciReason">Reason for visit</label>
+          <div class="control">
+            <select id="ciReason" class="select">{% for r in reasons %}<option>{{ r }}</option>{% endfor %}</select>
+            <span class="suffix"><i data-lucide="chevron-down"></i></span>
+          </div>
+        </div>
+      </div>
+      <div class="form-error" id="ciError"></div>
+      <div class="track-result" id="ciResult">
+        <div class="row-kv"><span>Check-in reference</span><strong id="ciRef"></strong></div>
+        <div class="row-kv"><span>Station</span><strong id="ciSt"></strong></div>
+        <div class="row-kv"><span>Time recorded</span><strong id="ciTime"></strong></div>
+        <p style="font-size:12.5px;color:var(--text-500);margin:8px 0 0">Please take a seat. Keep this reference: it proves you were at the station, even if you are turned away.</p>
+      </div>
+    </form>
+    <div class="modal-foot">
+      <button class="btn btn-outline js-close">Close</button>
+      <button class="btn btn-primary" form="checkinForm" type="submit">Check In</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ TRACK MODAL ============ -->
+<div class="modal-backdrop" id="trackModal">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="trackTitle">
+    <div class="modal-head">
+      <h3 class="card-title" id="trackTitle">Track My Case</h3>
+      <button class="icon-btn js-close" aria-label="Close"><i data-lucide="x"></i></button>
+    </div>
+    <form class="modal-body" id="trackForm" novalidate>
+      <div class="field" style="margin-bottom:14px">
+        <label for="tkDocket">Docket Number <span class="req">*</span></label>
+        <input id="tkDocket" class="input" placeholder="e.g. DCMS-{{ year }}-0001">
+      </div>
+      <div class="field">
+        <label for="tkId">ID Number <span class="req">*</span></label>
+        <input id="tkId" class="input" inputmode="numeric" maxlength="13" placeholder="13-digit ID number">
+      </div>
+      <div class="form-error" id="tkError"></div>
+      <div class="track-result" id="tkResult">
+        <div class="row-kv"><span>Docket</span><strong id="tkNo"></strong></div>
+        <div class="row-kv"><span>Crime type</span><strong id="tkCrime"></strong></div>
+        <div class="row-kv"><span>Status</span><span class="badge badge-info" id="tkStatus"></span></div>
+        <div class="row-kv"><span>Investigating officer</span><strong id="tkDet"></strong></div>
+        <div class="row-kv"><span>Last update</span><strong id="tkUpd"></strong></div>
+      </div>
+      
+    </form>
+    <div class="modal-foot">
+      <button class="btn btn-outline js-close">Close</button>
+      <button class="btn btn-primary" form="trackForm" type="submit">Search</button>
+    </div>
+  </div>
+</div>
+
+<script src="{{ url_for('static', filename='js/lucide.min.js') }}"></script>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  if (window.lucide) lucide.createIcons();
+  const csrf = document.querySelector('meta[name=csrf-token]').content;
+  const post = (url, body) => fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': csrf }, body: JSON.stringify(body) })
+                                .then(r => r.json());
+
+  /* ---- Mobile menu ---- */
+  const toggle = document.getElementById('menuToggle');
+  if (toggle) toggle.addEventListener('click', () => document.getElementById('menu').classList.toggle('open'));
+
+  /* ---- Pop-ups ---- */
+  const open = id => document.getElementById(id).classList.add('open');
+  const closeAll = () => document.querySelectorAll('.modal-backdrop').forEach(m => m.classList.remove('open'));
+  document.querySelectorAll('.js-open-track').forEach(el => el.addEventListener('click', e => { e.preventDefault(); open('trackModal'); }));
+  document.querySelectorAll('.js-open-checkin').forEach(el => el.addEventListener('click', e => { e.preventDefault(); open('checkinModal'); }));
+  document.querySelectorAll('.js-close').forEach(el => el.addEventListener('click', closeAll));
+  document.querySelectorAll('.modal-backdrop').forEach(m => m.addEventListener('click', e => { if (e.target === m) closeAll(); }));
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') closeAll(); });
+
+  const showError = (id, msg) => { const el = document.getElementById(id); el.textContent = msg; el.classList.toggle('show', !!msg); };
+
+  /* ---- Kiosk check-in (saved in the database) ---- */
+  document.getElementById('checkinForm').addEventListener('submit', async e => {
+    e.preventDefault();
+    showError('ciError', '');
+    document.getElementById('ciResult').classList.remove('show');
+    const res = await post('{{ url_for("public.api_checkin") }}', {
+      full_name: document.getElementById('ciName').value,
+      id_no: document.getElementById('ciId').value,
+      station_id: document.getElementById('ciStation').value,
+      language: document.getElementById('ciLang').value,
+      reason: document.getElementById('ciReason').value,
+    });
+    if (!res.ok) return showError('ciError', res.error);
+    document.getElementById('ciRef').textContent = res.ref;
+    document.getElementById('ciSt').textContent = res.station;
+    document.getElementById('ciTime').textContent = res.time;
+    document.getElementById('ciResult').classList.add('show');
+    e.target.querySelectorAll('input').forEach(i => i.value = '');
+  });
+
+  /* ---- Track my case (looked up in the database) ---- */
+  document.getElementById('trackForm').addEventListener('submit', async e => {
+    e.preventDefault();
+    showError('tkError', '');
+    document.getElementById('tkResult').classList.remove('show');
+    const res = await post('{{ url_for("public.api_track") }}', {
+      docket: document.getElementById('tkDocket').value,
+      id_no: document.getElementById('tkId').value,
+    });
+    if (!res.ok) return showError('tkError', res.error);
+    document.getElementById('tkNo').textContent = res.number;
+    document.getElementById('tkCrime').textContent = res.crime;
+    document.getElementById('tkStatus').textContent = res.status;
+    document.getElementById('tkDet').textContent = res.detective;
+    document.getElementById('tkUpd').textContent = res.updated;
+    document.getElementById('tkResult').classList.add('show');
+  });
+});
+</script>
+</body>
+</html>

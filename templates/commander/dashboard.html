@@ -1,0 +1,91 @@
+{% extends 'layout.html' %}
+{% block title %}Commander Dashboard{% endblock %}
+{% block content %}
+<div class="welcome">
+  <div>
+    <h1 class="page-title">Good day, {{ me.name }}</h1>
+    <p class="page-sub"><span class="js-today"></span>{{ me.station }} Police Station</p>
+  </div>
+  <div class="welcome-actions">
+    <a href="{{ url_for('commander.reports') }}" class="btn btn-outline"><i data-lucide="file-bar-chart"></i>Reports</a>
+    <a href="{{ url_for('commander.unassigned') }}" class="btn btn-primary"><i data-lucide="user-plus"></i>Assign Dockets</a>
+  </div>
+</div>
+
+<section class="stats">
+  {{ ui.stat('file-text', 'i-purple', stats.unassigned, 'Unassigned<br>dockets') }}
+  {{ ui.stat('alarm-clock', 'i-red', stats.stalled, 'Stalled cases<br>(' ~ config.STALLED_DAYS ~ '+ days idle)') }}
+  {{ ui.stat('user-x', 'i-orange', stats.refusals_week, 'Refusals<br>this week') }}
+  {{ ui.stat('circle-check', 'i-green', stats.closure, 'Awaiting closure<br>approval') }}
+</section>
+
+<div class="dash-grid">
+  <section class="card span-2">
+    <div class="card-head"><h2 class="card-title">Escalation Alerts</h2>
+      {% set n = stalled|length + unmatched|length %}
+      {% if n %}<span class="badge badge-high">{{ n }} need action</span>{% else %}<span class="badge badge-assigned">All clear</span>{% endif %}
+    </div>
+    <ul class="alert-list">
+      {% for d in stalled %}
+      <li><span class="al-icon i-red"><i data-lucide="alarm-clock"></i></span>
+        <div><strong>{{ d.number }} · {{ d.crime_type }}</strong><small>No activity for {{ d.idle }} days · {{ d.detective }}</small></div>
+        <a href="{{ url_for('commander.docket', number=d.number) }}" class="btn btn-outline btn-sm">Review</a></li>
+      {% endfor %}
+      {% for c in unmatched %}
+      <li><span class="al-icon i-orange"><i data-lucide="user-x"></i></span>
+        <div><strong>Unmatched check-in {{ c.ref }} · {{ c.full_name }}</strong><small>Checked in {{ c.created_at|ago }} · no docket or refusal recorded</small></div>
+        <a href="{{ url_for('commander.refusals') }}" class="btn btn-outline btn-sm">Investigate</a></li>
+      {% endfor %}
+      {% if not n %}<li class="muted small">No stalled cases and no unmatched check-ins.</li>{% endif %}
+    </ul>
+  </section>
+
+  <section class="card">
+    <div class="card-head"><h2 class="card-title">Detective Workload</h2><a href="{{ url_for('commander.detectives') }}" class="link">Details</a></div>
+    <div class="workload">
+      {% set top = (detectives|map(attribute='open_cases')|max) if detectives else 1 %}
+      {% for det in detectives %}
+      <div class="wl-row"><span>{{ det.full_name }}</span><div class="wl-bar"><i style="width:{{ (det.open_cases / (top or 1) * 100)|round }}%" class="{{ 'high' if det.open_cases > 8 }}"></i></div><b>{{ det.open_cases }}</b></div>
+      {% endfor %}
+      <p class="wl-note">Open cases per detective. Red = above 8 open cases.</p>
+    </div>
+  </section>
+
+  <section class="card span-2">
+    <div class="card-head"><h2 class="card-title">Unassigned Dockets (highest priority first)</h2><a href="{{ url_for('commander.unassigned') }}" class="link">View all {{ stats.unassigned }}</a></div>
+    {% if unassigned %}
+    <div class="table-wrap">
+      <table class="table">
+        <thead><tr><th>Docket No.</th><th>Registered</th><th>Crime Type</th><th>Complainant</th><th>Priority</th><th>Actions</th></tr></thead>
+        <tbody>
+          {% for d in unassigned %}
+          <tr>
+            <td><a class="link" href="{{ url_for('commander.docket', number=d.number) }}">{{ d.number }}</a></td>
+            <td>{{ d.created_at|dt('%d %b %Y') }}</td><td>{{ d.crime_type }}</td><td>{{ d.complainant }}</td><td>{{ ui.prio(d.priority) }}</td>
+            <td><button class="btn btn-primary btn-sm" data-modal="assignModal" data-number="{{ d.number }}" data-priority="{{ d.priority }}">Assign</button></td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}{{ ui.empty('circle-check', 'Every docket has a detective.') }}{% endif %}
+  </section>
+
+  <section class="card">
+    <div class="card-head"><h2 class="card-title">Awaiting Your Approval</h2></div>
+    <ul class="alert-list compact">
+      {% for d in closure %}
+      <li><span class="al-icon i-green"><i data-lucide="flag"></i></span><div><strong>{{ d.number }} · {{ d.crime_type }}</strong><small>Ready for closure · {{ d.detective }}</small></div>
+        <a href="{{ url_for('commander.docket', number=d.number) }}" class="btn btn-primary btn-sm">Review</a></li>
+      {% else %}<li class="muted small">Nothing waiting for approval.</li>{% endfor %}
+    </ul>
+    <div class="card-head" style="border-top:1px solid var(--border)"><h2 class="card-title">Refusals This Week</h2><a href="{{ url_for('commander.refusals') }}" class="link">All</a></div>
+    <ul class="alert-list compact">
+      {% for r in refusals %}
+      <li><span class="al-icon i-orange"><i data-lucide="user-x"></i></span><div><strong>{{ r.reason }}</strong><small>{{ r.n }} refusal{{ 's' if r.n != 1 }}</small></div></li>
+      {% else %}<li class="muted small">No refusals this week.</li>{% endfor %}
+    </ul>
+  </section>
+</div>
+{% include 'partials/assign_modal.html' %}
+{% endblock %}

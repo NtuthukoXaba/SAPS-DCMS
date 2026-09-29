@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Staff Login | SAPS-DCMS</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <link rel="icon" href="{{ url_for('static', filename='images/logo.svg') }}">
+</head>
+<body class="public">
+<div class="login-wrap">
+
+  <!-- ============ LEFT: BRAND PANEL ============ -->
+  <aside class="login-side">
+    <a href="{{ url_for('public.index') }}" class="logo">
+      <img src="{{ url_for('static', filename='images/logo.svg') }}" alt="SAPS-DCMS logo">
+      <div>
+        <div class="logo-title">SAPS-DCMS</div>
+        <div class="logo-sub">Case Docket Management System</div>
+      </div>
+    </a>
+    <div>
+      <h2>Secure access for authorised personnel</h2>
+      <p>Sign in with your personnel number. The system recognises your role and opens your workspace.</p>
+      <ul class="login-points">
+        <li><i data-lucide="shield-check"></i>Role-based access to dockets</li>
+        <li><i data-lucide="fingerprint"></i>Every sign-in and action is audited</li>
+        <li><i data-lucide="key-round"></i>Multi-factor authentication for commanders and admins</li>
+      </ul>
+    </div>
+    <small style="color:#8ea1c2">Group 37 · DUT</small>
+  </aside>
+
+  <!-- ============ RIGHT: LOGIN FORM ============ -->
+  <main class="login-main">
+    <div class="login-box">
+      <a href="{{ url_for('public.index') }}" class="back-link"><i data-lucide="arrow-left"></i>Back to homepage</a>
+      <h1>Staff Login</h1>
+      <p class="sub">Enter your details to access your workspace.</p>
+
+      {% with messages = get_flashed_messages(with_categories=true) %}{% for c, m in messages %}
+      <div class="login-alert {{ 'ok' if c == 'success' }}"><i data-lucide="{{ 'circle-check' if c == 'success' else 'circle-alert' }}"></i>{{ m }}</div>
+      {% endfor %}{% endwith %}
+      {% if error %}
+      <div class="login-alert"><i data-lucide="circle-alert"></i>{{ error }}</div>
+      {% endif %}
+
+      <form method="POST" id="loginForm" novalidate>
+        <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+        <div class="field">
+          <label for="persal">Personnel Number <span class="req">*</span></label>
+          <input id="persal" name="persal" class="input" placeholder="e.g. 1000001" autocomplete="username" value="{{ persal }}" required>
+        </div>
+
+        <div class="field">
+          <label for="password">Password <span class="req">*</span></label>
+          <div class="control">
+            <input id="password" name="password" class="input" type="password" placeholder="Enter your password" autocomplete="current-password" style="padding-right:40px" required>
+            <button type="button" class="pw-toggle" id="pwToggle" aria-label="Show password"><i data-lucide="eye"></i></button>
+          </div>
+        </div>
+
+        <div class="login-row">
+          <label><input type="checkbox" name="remember"> Remember me</label>
+          <a href="#" class="link">Forgot password?</a>
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-lg">Sign In</button>
+        <div class="form-error" id="loginError">Please enter your personnel number and password.</div>
+      </form>
+
+      
+
+      <div class="secure-note">
+        <i data-lucide="lock"></i>
+        <span>This is a restricted system. Unauthorised access is an offence, and all activity is logged.</span>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script src="{{ url_for('static', filename='js/lucide.min.js') }}"></script>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  if (window.lucide) lucide.createIcons();
+
+  const persal = document.getElementById('persal');
+  const pw = document.getElementById('password');
+
+  /* Show / hide password */
+  document.getElementById('pwToggle').addEventListener('click', () => {
+    pw.type = pw.type === 'password' ? 'text' : 'password';
+  });
+
+  /* Coming from a homepage role button (e.g. /login?role=detective)? Highlight that demo account */
+  const pre = new URLSearchParams(location.search).get('role');
+  const map = { csc: '1000001', commander: '1000002', detective: '1000003', admin: '1000004' };
+  if (pre && map[pre] && !persal.value) persal.value = map[pre];
+
+  /* Click a demo account to fill in the form */
+  document.querySelectorAll('.demo-acc').forEach(btn => btn.addEventListener('click', () => {
+    persal.value = btn.dataset.persal;
+    pw.value = btn.dataset.pw;
+    pw.focus();
+  }));
+
+  /* Stop empty submissions before they reach the server */
+  document.getElementById('loginForm').addEventListener('submit', e => {
+    const ok = persal.value.trim() && pw.value;
+    document.getElementById('loginError').classList.toggle('show', !ok);
+    if (!ok) e.preventDefault();
+  });
+});
+</script>
+</body>
+</html>

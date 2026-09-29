@@ -1,0 +1,36 @@
+{% extends 'layout.html' %}
+{% block title %}My Reports{% endblock %}
+{% block content %}
+{% call ui.header('My Reports', 'A summary of the cases you registered and the refusals you logged') %}
+  <button class="btn btn-outline" onclick="window.print()"><i data-lucide="printer"></i>Print</button>
+{% endcall %}
+<section class="stats">
+  {{ ui.stat('file-text', 'i-sky', stats.total, 'Dockets<br>registered') }}
+  {{ ui.stat('user-x', 'i-red', stats.refusals, 'Refusals<br>logged') }}
+  {{ ui.stat('users', 'i-orange', stats.waiting, 'Still waiting<br>in queue') }}
+  {{ ui.stat('timer', 'i-green', stats.avg_wait ~ ' min', 'Average wait<br>before I helped') }}
+</section>
+<div class="dash-grid">
+  <section class="card">
+    <div class="card-head"><h2 class="card-title">Dockets by Crime Type</h2></div>
+    <div class="workload bars">
+      {% for r in by_crime %}
+      <div class="wl-row"><span>{{ r.crime_type }}</span><div class="wl-bar"><i style="width:{{ (r.n / top * 100)|round }}%"></i></div><b>{{ r.n }}</b></div>
+      {% else %}<p class="wl-note">No dockets yet.</p>{% endfor %}
+    </div>
+  </section>
+  <section class="card span-2">
+    <div class="card-head"><h2 class="card-title">Refusals I Logged</h2><span class="muted-note"><i data-lucide="eye"></i>Visible to the Station Commander</span></div>
+    {% if refusals %}
+    <div class="table-wrap">
+      <table class="table">
+        <thead><tr><th>Check-in</th><th>Name</th><th>Reason</th><th>Notes</th><th>Logged</th></tr></thead>
+        <tbody>
+          {% for r in refusals %}<tr><td>{{ r.ref }}</td><td>{{ r.full_name }}</td><td>{{ r.reason }}</td><td>{{ r.notes or '—' }}</td><td>{{ r.created_at|dt }}</td></tr>{% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}{{ ui.empty('circle-check', 'No refusals logged.') }}{% endif %}
+  </section>
+</div>
+{% endblock %}

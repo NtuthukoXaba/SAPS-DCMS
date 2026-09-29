@@ -1,0 +1,40 @@
+{% extends 'layout.html' %}
+{% block title %}My Profile{% endblock %}
+{% block content %}
+{{ ui.header('My Profile', 'Your account details and password') }}
+<div class="dash-grid">
+  <section class="card profile-card">
+    <div class="profile-avatar"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4.2"/><path d="M3.5 21c.8-4.4 4.2-7 8.5-7s7.7 2.6 8.5 7z"/></svg></div>
+    <h2>{{ user.full_name }}</h2>
+    <p>{{ ROLE_NAMES[user.role] }}</p>
+    {{ ui.status(user.status) }}
+  </section>
+
+  <section class="card span-2">
+    <div class="card-head"><h2 class="card-title">Account Details</h2></div>
+    <dl class="info-list">
+      <div><dt>Personnel number</dt><dd>{{ user.persal }}</dd></div>
+      <div><dt>Role</dt><dd>{{ ROLE_NAMES[user.role] }}</dd></div>
+      <div><dt>Station</dt><dd>{{ user.station_name or '—' }}</dd></div>
+      <div><dt>Email</dt><dd>{{ user.email or '—' }}</dd></div>
+      <div><dt>Phone</dt><dd>{{ user.phone or '—' }}</dd></div>
+      <div><dt>Last sign-in</dt><dd>{{ user.last_login|dt }}</dd></div>
+    </dl>
+    <p class="wl-note" style="padding:0 18px 16px">To change your role or station, contact the System Administrator.</p>
+  </section>
+
+  <section class="card span-3">
+    <div class="card-head"><h2 class="card-title">Change Password</h2></div>
+    <form class="pw-form" method="post">
+      {{ ui.csrf() }}
+      <div class="field"><label for="current">Current password</label><input id="current" name="current" type="password" class="input" required autocomplete="current-password"></div>
+      <div class="field"><label for="new">New password</label><input id="new" name="new" type="password" class="input" minlength="8" required autocomplete="new-password"></div>
+      <div class="field"><label for="confirm">Confirm new password</label><input id="confirm" name="confirm" type="password" class="input" minlength="8" required autocomplete="new-password"></div>
+      <div class="pw-actions">
+        <button class="btn btn-primary" type="submit">Update Password</button>
+        <span class="pw-msg"><i data-lucide="info"></i>At least 8 characters, with letters and numbers.</span>
+      </div>
+    </form>
+  </section>
+</div>
+{% endblock %}

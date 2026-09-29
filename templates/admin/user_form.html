@@ -1,0 +1,46 @@
+{% extends 'layout.html' %}
+{% block title %}{{ 'Edit User' if editing else 'Add User' }}{% endblock %}
+{% set active_nav = 'admin.users' %}
+{% macro fc(name) %}{{ 'is-invalid' if errors.get(name) }}{% endmacro %}
+{% block content %}
+<a href="{{ url_for('admin.users') }}" class="back-link"><i data-lucide="arrow-left"></i>Back to User Management</a>
+{{ ui.header(('Edit ' ~ editing.full_name) if editing else 'Add User', 'Account details, role, station and status') }}
+<form method="post" class="register-grid" novalidate>
+  {{ ui.csrf() }}
+  <section class="card form-card">
+    <div class="form-grid">
+      <div class="field {{ fc('full_name') }}"><label for="full_name">Full name with rank <span class="req">*</span></label>
+        <input id="full_name" name="full_name" class="input" value="{{ form.full_name or '' }}" placeholder='e.g. Const. T. Mabena'>{{ ui.err(errors, 'full_name') }}</div>
+      <div class="field {{ fc('persal') }}"><label for="persal">Personnel number (login) <span class="req">*</span></label>
+        <input id="persal" name="persal" class="input" value="{{ form.persal or '' }}" inputmode="numeric" placeholder="e.g. 1000009">{{ ui.err(errors, 'persal') }}</div>
+      <div class="field {{ fc('role') }}"><label for="role">Role <span class="req">*</span></label>
+        {{ ui.select('role', roles.items()|list, form.role) }}{{ ui.err(errors, 'role') }}</div>
+      <div class="field {{ fc('station_id') }}"><label for="station_id">Station <span class="req">*</span></label>
+        <div class="control">
+          <select id="station_id" name="station_id" class="select">
+            <option value="">Select a station</option>
+            {% for s in stations %}<option value="{{ s.id }}" {{ 'selected' if form.station_id|string == s.id|string }}>{{ s.name }}</option>{% endfor %}
+          </select><span class="suffix"><i data-lucide="chevron-down"></i></span>
+        </div>{{ ui.err(errors, 'station_id') }}</div>
+      <div class="field {{ fc('email') }}"><label for="email">Email</label><input id="email" name="email" type="email" class="input" value="{{ form.email or '' }}">{{ ui.err(errors, 'email') }}</div>
+      <div class="field"><label for="phone">Phone</label><input id="phone" name="phone" class="input" value="{{ form.phone or '' }}"></div>
+      <div class="field {{ fc('status') }}"><label for="status">Status <span class="req">*</span></label>{{ ui.select('status', statuses, form.status) }}{{ ui.err(errors, 'status') }}</div>
+      <div class="field {{ fc('password') }}"><label for="password">{{ 'Reset password' if editing else 'Password' }} {% if not editing %}<span class="req">*</span>{% endif %}</label>
+        <input id="password" name="password" class="input" type="text" value="{{ form.password or suggested or '' }}" placeholder="{{ 'Leave empty to keep the current password' if editing else '' }}" autocomplete="new-password">
+        {{ ui.err(errors, 'password') }}
+        {% if not editing %}<div class="small muted" style="margin-top:6px">A random password is suggested. Give it to the user and ask them to change it on their Profile page.</div>{% endif %}</div>
+    </div>
+  </section>
+  <aside class="side-col">
+    {% if errors %}<div class="alert alert-danger"><div class="alert-title"><i data-lucide="triangle-alert"></i>Please fix</div><ul>{% for m in errors.values() %}<li>{{ m }}</li>{% endfor %}</ul></div>{% endif %}
+    <div class="alert alert-info"><div class="alert-title"><i data-lucide="info"></i>Roles</div>
+      <p><strong>CSC Official</strong> registers cases. <strong>Station Commander</strong> assigns and closes dockets. <strong>Detective</strong> investigates assigned cases. <strong>Administrator</strong> manages accounts.</p></div>
+    {% if editing %}<div class="alert alert-info"><div class="alert-title"><i data-lucide="history"></i>Account</div>
+      <p>Created {{ editing.created_at|dt }}<br>Last sign-in {{ editing.last_login|dt if editing.last_login else 'never' }}<br>Failed attempts {{ editing.failed_attempts }}</p></div>{% endif %}
+    <div class="form-actions">
+      <a href="{{ url_for('admin.users') }}" class="btn btn-outline">Cancel</a>
+      <button type="submit" class="btn btn-primary">{{ 'Save Changes' if editing else 'Create Account' }}</button>
+    </div>
+  </aside>
+</form>
+{% endblock %}

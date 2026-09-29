@@ -1,0 +1,30 @@
+{% extends 'layout.html' %}
+{% block title %}My Cases{% endblock %}
+{% block content %}
+{{ ui.header('My Cases', 'Dockets assigned to you') }}
+<nav class="filter-tabs">
+  {% for s in ['Open', 'Ready for closure', 'Closed', 'All'] %}
+  <a href="{{ url_for('detective.cases', status=s) }}" class="{{ 'active' if status == s }}">{{ s }}</a>
+  {% endfor %}
+</nav>
+<section class="card">
+  {% if cases %}
+  <div class="table-wrap">
+    <table class="table">
+      <thead><tr><th>Docket No.</th><th>Crime Type</th><th>Complainant</th><th>Priority</th><th>Status</th><th>Last Activity</th><th>Progress</th><th></th></tr></thead>
+      <tbody>
+        {% for c in cases %}
+        <tr class="row-link" data-href="{{ url_for('detective.case', number=c.number) }}">
+          <td><a class="link" href="{{ url_for('detective.case', number=c.number) }}">{{ c.number }}</a></td>
+          <td>{{ c.crime_type }}</td><td>{{ c.complainant }}</td><td>{{ ui.prio(c.priority) }}</td><td>{{ ui.status(c.status) }}</td>
+          <td class="{{ 'warn' if c.idle >= idle_days and c.status in ('Assigned','Under investigation') }}">{{ c.updated_at|ago }}</td>
+          <td class="nowrap"><div class="mini-progress"><i style="width:{{ c.progress }}%"></i></div><small>{{ c.progress }}%</small></td>
+          <td><a href="{{ url_for('detective.case', number=c.number) }}" class="btn btn-outline btn-sm">Open</a></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}{{ ui.empty('folder-open', 'No cases in this list.') }}{% endif %}
+</section>
+{% endblock %}

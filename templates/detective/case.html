@@ -1,0 +1,223 @@
+{% extends 'layout.html' %}
+{% block title %}{{ d.number }}{% endblock %}
+{% set active_nav = 'detective.cases' %}
+{% block content %}
+<a href="{{ url_for('detective.cases') }}" class="back-link"><i data-lucide="arrow-left"></i>Back to My Cases</a>
+
+<div class="case-head">
+  <div class="case-head-row">
+    <div>
+      <h1 class="case-title">Docket No: {{ d.number }} {{ ui.status(d.status) }}</h1>
+      <div class="case-meta">
+        <span>{{ d.crime_type }}</span><span class="dot"></span>
+        <span>Registered: {{ d.created_at|dt('%Y-%m-%d') }}</span><span class="dot"></span>
+        <span>Priority:</span>{{ ui.prio(d.priority) }}
+      </div>
+    </div>
+    <div class="progress-box">
+      <div class="progress-label">Case Progress</div>
+      <div class="progress-row"><strong>{{ d.progress }}%</strong><div class="progress"><span style="width:{{ d.progress }}%"></span></div></div>
+    </div>
+  </div>
+  <nav class="tabs">
+    {% for key, label, n in [('overview','Case Overview',None),('suspects','Suspects',suspects|length),('witnesses','Witnesses',witnesses|length),
+                             ('evidence','Evidence',evidence|length),('notes','Notes',notes|length),('activity','Activities',None)] %}
+    <a class="tab {{ 'active' if tab == key }}" href="{{ url_for('detective.case', number=d.number, tab=key) }}">{{ label }}{% if n is not none %}<span class="n">{{ n }}</span>{% endif %}</a>
+    {% endfor %}
+  </nav>
+</div>
+
+{% if locked %}
+<div class="lock-note"><i data-lucide="lock"></i>This case is {{ d.status|lower }}. It can no longer be changed{% if d.status == 'Ready for closure' %} unless the Station Commander sends it back{% endif %}.</div>
+{% endif %}
+
+{# ================= OVERVIEW ================= #}
+{% if tab == 'overview' %}
+<div class="ws-grid">
+  <div class="ws-col">
+    <section class="card info-card">
+      <div class="card-head"><h2 class="card-title">Case Information</h2></div>
+      <dl class="info-list">
+        <div><dt>Complainant</dt><dd>{{ d.complainant }}</dd></div>
+        <div><dt>Contact</dt><dd>{{ d.contact }}</dd></div>
+        <div><dt>ID number</dt><dd>{{ d.id_no|idfmt }}</dd></div>
+        <div><dt>Date of Incident</dt><dd>{{ d.incident_date }} {{ d.incident_time }}</dd></div>
+        <div><dt>Location</dt><dd>{{ d.location or d.address }}</dd></div>
+      </dl>
+      <div class="desc"><h4>Description</h4><p>{{ d.description }}</p></div>
+    </section>
+  </div>
+  <div class="ws-col">
+    <section class="card">
+      <div class="card-head"><h2 class="card-title">Suspects</h2><a class="btn btn-primary btn-sm" href="{{ url_for('detective.case', number=d.number, tab='suspects') }}"><i data-lucide="plus"></i>Add Suspect</a></div>
+      <div class="table-wrap"><table class="table table-compact">
+        <thead><tr><th>Name</th><th>ID Number</th><th>Status</th></tr></thead>
+        <tbody>{% for s in suspects %}<tr><td>{{ s.full_name }}</td><td class="nowrap">{{ s.id_no|idfmt if s.id_no else '—' }}</td><td>{{ s.status }}</td></tr>
+        {% else %}<tr><td colspan="3" class="muted">No suspects yet.</td></tr>{% endfor %}</tbody>
+      </table></div>
+    </section>
+    <section class="card">
+      <div class="card-head"><h2 class="card-title">Witness Statements</h2><a class="btn btn-primary btn-sm" href="{{ url_for('detective.case', number=d.number, tab='witnesses') }}"><i data-lucide="plus"></i>Add Witness</a></div>
+      <div class="table-wrap"><table class="table table-compact">
+        <thead><tr><th>Witness Name</th><th>Contact</th><th>Statement Date</th></tr></thead>
+        <tbody>{% for w in witnesses %}<tr><td>{{ w.full_name }}</td><td>{{ w.contact or '—' }}</td><td>{{ w.statement_date }}</td></tr>
+        {% else %}<tr><td colspan="3" class="muted">No statements yet.</td></tr>{% endfor %}</tbody>
+      </table></div>
+    </section>
+  </div>
+  <div class="ws-col">
+    <section class="card">
+      <div class="card-head"><h2 class="card-title">Evidence</h2><a class="btn btn-primary btn-sm" href="{{ url_for('detective.case', number=d.number, tab='evidence') }}"><i data-lucide="plus"></i>Upload Evidence</a></div>
+      <ul class="evidence-list">
+        {% for e in evidence[:4] %}
+        <li><span class="ev-icon"><i data-lucide="{{ 'video' if e.filename.lower().endswith(('.mp4','.mov')) else 'image' if e.filename.lower().endswith(('.jpg','.jpeg','.png','.gif')) else 'file-text' }}"></i></span>
+          <div><div class="ev-name">{{ e.filename }}</div><div class="ev-date">Uploaded: {{ e.created_at|dt('%Y-%m-%d') }}</div></div>
+          <div class="ev-actions"><a class="btn btn-outline btn-xs" target="_blank" href="{{ url_for('common.evidence_file', evidence_id=e.id) }}">View</a></div></li>
+        {% else %}<li class="muted small">No evidence yet.</li>{% endfor %}
+      </ul>
+    </section>
+    {% if not locked %}
+    <section class="card">
+      <div class="card-head"><h2 class="card-title">Update Progress</h2></div>
+      <form method="post" action="{{ url_for('detective.update_progress', number=d.number) }}" class="form-pad">
+        {{ ui.csrf() }}
+        <div class="range-row"><input type="range" name="progress" min="0" max="95" step="5" value="{{ d.progress if d.progress <= 95 else 95 }}" data-output="progOut"><output id="progOut"></output></div>
+        <button class="btn btn-outline btn-sm" type="submit" style="margin-top:12px">Save progress</button>
+      </form>
+    </section>
+    <section class="card">
+      <div class="card-head"><h2 class="card-title">Submit for Closure</h2></div>
+      <form method="post" action="{{ url_for('detective.submit_closure', number=d.number) }}" class="form-pad" data-confirm="Send this case to the Station Commander for closure? You will not be able to change it afterwards.">
+        {{ ui.csrf() }}
+        <div class="field" style="margin-bottom:12px">
+          <label for="summary">Closing summary <span class="req">*</span></label>
+          <textarea id="summary" name="summary" class="textarea" placeholder="What was found, outcome for suspects, what happened to recovered property…"></textarea>
+        </div>
+        <button class="btn btn-primary btn-sm" type="submit"><i data-lucide="flag"></i>Submit to Commander</button>
+      </form>
+    </section>
+    {% endif %}
+  </div>
+</div>
+
+{# ================= SUSPECTS ================= #}
+{% elif tab == 'suspects' %}
+<div class="dash-grid">
+  <section class="card span-2">
+    <div class="card-head"><h2 class="card-title">Suspects</h2></div>
+    {% if suspects %}
+    <div class="table-wrap"><table class="table">
+      <thead><tr><th>Name</th><th>ID Number</th><th>Notes</th><th>Added</th><th>Status</th></tr></thead>
+      <tbody>{% for s in suspects %}
+        <tr><td><strong>{{ s.full_name }}</strong></td><td class="nowrap">{{ s.id_no|idfmt if s.id_no else '—' }}</td><td>{{ s.notes or '—' }}</td><td>{{ s.created_at|dt('%d %b %Y') }}</td>
+          <td>{% if locked %}{{ s.status }}{% else %}
+            <form method="post" action="{{ url_for('detective.update_suspect', number=d.number, sid=s.id) }}" class="gap-row">
+              {{ ui.csrf() }}
+              <div class="control sm">{{ ui.select('status', suspect_statuses, s.status, cls='select select-sm', attrs='onchange="this.form.submit()"') }}</div>
+            </form>{% endif %}</td></tr>
+      {% endfor %}</tbody>
+    </table></div>
+    {% else %}{{ ui.empty('users', 'No suspects recorded yet.') }}{% endif %}
+  </section>
+  {% if not locked %}
+  <section class="card">
+    <div class="card-head"><h2 class="card-title">Add Suspect</h2></div>
+    <form method="post" action="{{ url_for('detective.add_suspect', number=d.number) }}" class="form-pad stack">
+      {{ ui.csrf() }}
+      <div class="field"><label for="s_name">Full name <span class="req">*</span></label><input id="s_name" name="full_name" class="input" required></div>
+      <div class="field"><label for="s_id">ID number <small class="hint">(if known)</small></label><input id="s_id" name="id_no" class="input" inputmode="numeric" maxlength="13"></div>
+      <div class="field"><label for="status">Status <span class="req">*</span></label>{{ ui.select('status', suspect_statuses, 'Person of Interest') }}</div>
+      <div class="field"><label for="s_notes">Notes</label><textarea id="s_notes" name="notes" class="textarea" placeholder="Why is this person a suspect?"></textarea></div>
+      <button class="btn btn-primary" type="submit"><i data-lucide="plus"></i>Add Suspect</button>
+    </form>
+  </section>
+  {% endif %}
+</div>
+
+{# ================= WITNESSES ================= #}
+{% elif tab == 'witnesses' %}
+<div class="dash-grid">
+  <section class="card span-2">
+    <div class="card-head"><h2 class="card-title">Witness Statements</h2></div>
+    <ul class="item-list">
+      {% for w in witnesses %}
+      <li><div class="item-top"><strong>{{ w.full_name }}</strong><span class="small muted">{{ w.contact or 'No contact' }} · statement {{ w.statement_date }}</span></div>
+        <p class="statement">{{ w.statement }}</p><div class="small muted">Recorded by {{ w.added_name }}</div></li>
+      {% else %}<li>{{ ui.empty('file-signature', 'No statements recorded yet.') }}</li>{% endfor %}
+    </ul>
+  </section>
+  {% if not locked %}
+  <section class="card">
+    <div class="card-head"><h2 class="card-title">Add Witness Statement</h2></div>
+    <form method="post" action="{{ url_for('detective.add_witness', number=d.number) }}" class="form-pad stack">
+      {{ ui.csrf() }}
+      <div class="field"><label for="w_name">Witness name <span class="req">*</span></label><input id="w_name" name="full_name" class="input" required></div>
+      <div class="field"><label for="w_contact">Contact number</label><input id="w_contact" name="contact" class="input"></div>
+      <div class="field"><label for="w_date">Statement date</label><input id="w_date" name="statement_date" type="date" class="input" value="{{ now_date }}" max="{{ now_date }}"></div>
+      <div class="field"><label for="w_statement">Statement <span class="req">*</span></label><textarea id="w_statement" name="statement" class="textarea" rows="6" required></textarea></div>
+      <button class="btn btn-primary" type="submit"><i data-lucide="plus"></i>Save Statement</button>
+    </form>
+  </section>
+  {% endif %}
+</div>
+
+{# ================= EVIDENCE ================= #}
+{% elif tab == 'evidence' %}
+<div class="dash-grid">
+  <section class="card span-2">
+    <div class="card-head"><h2 class="card-title">Evidence</h2><span class="muted-note"><i data-lucide="fingerprint"></i>Each file's SHA-256 fingerprint is stored</span></div>
+    <ul class="evidence-list">
+      {% for e in evidence %}
+      <li><span class="ev-icon"><i data-lucide="{{ 'video' if e.filename.lower().endswith(('.mp4','.mov')) else 'image' if e.filename.lower().endswith(('.jpg','.jpeg','.png','.gif')) else 'file-text' }}"></i></span>
+        <div><div class="ev-name">{{ e.filename }}</div>
+          <div class="ev-date">{{ e.description or 'No description' }} · {{ e.added_name }} · {{ e.created_at|dt }}</div>
+          {% if e.sha256 %}<div class="hash">SHA-256 {{ e.sha256 }}</div>{% else %}<div class="hash">Demo record – no file stored</div>{% endif %}</div>
+        <div class="ev-actions"><a class="btn btn-outline btn-xs" target="_blank" href="{{ url_for('common.evidence_file', evidence_id=e.id) }}">View</a></div></li>
+      {% else %}<li>{{ ui.empty('file-search', 'No evidence uploaded yet.') }}</li>{% endfor %}
+    </ul>
+  </section>
+  {% if not locked %}
+  <section class="card">
+    <div class="card-head"><h2 class="card-title">Upload Evidence</h2></div>
+    <form method="post" action="{{ url_for('detective.upload_evidence', number=d.number) }}" enctype="multipart/form-data" class="form-pad stack">
+      {{ ui.csrf() }}
+      <div class="field"><label for="file">File <span class="req">*</span></label><input id="file" name="file" type="file" class="input" style="padding-top:8px" required></div>
+      <div class="field"><label for="e_desc">Description</label><input id="e_desc" name="description" class="input" placeholder="What is it and where was it found?"></div>
+      <p class="small muted mt-0">Photos, video, audio, PDF, Word or text · max 20 MB</p>
+      <button class="btn btn-primary" type="submit"><i data-lucide="upload"></i>Upload</button>
+    </form>
+  </section>
+  {% endif %}
+</div>
+
+{# ================= NOTES ================= #}
+{% elif tab == 'notes' %}
+<div class="dash-grid">
+  <section class="card span-2">
+    <div class="card-head"><h2 class="card-title">Case Notes</h2></div>
+    <ul class="item-list">
+      {% for n in notes %}
+      <li><p class="note-text">{{ n.note }}</p><div class="small muted">{{ n.author }} · {{ n.created_at|dt }}</div></li>
+      {% else %}<li>{{ ui.empty('notebook-pen', 'No notes yet.') }}</li>{% endfor %}
+    </ul>
+  </section>
+  {% if not locked %}
+  <section class="card">
+    <div class="card-head"><h2 class="card-title">Add Note</h2></div>
+    <form method="post" action="{{ url_for('detective.add_note', number=d.number) }}" class="form-pad stack">
+      {{ ui.csrf() }}
+      <div class="field"><label for="note">Note</label><textarea id="note" name="note" class="textarea" rows="6" required placeholder="What did you do or find out?"></textarea></div>
+      <button class="btn btn-primary" type="submit"><i data-lucide="plus"></i>Add Note</button>
+    </form>
+  </section>
+  {% endif %}
+</div>
+
+{# ================= ACTIVITY ================= #}
+{% else %}
+<section class="card">
+  <div class="card-head"><h2 class="card-title">All Activity on this Docket</h2><span class="muted-note"><i data-lucide="lock"></i>From the audit log – cannot be edited</span></div>
+  {{ ui.timeline(history) }}
+</section>
+{% endif %}
+{% endblock %}

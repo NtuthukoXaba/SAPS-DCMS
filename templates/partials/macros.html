@@ -1,0 +1,66 @@
+{# Small reusable pieces. Use:  {% import 'partials/macros.html' as ui with context %} #}
+
+{% macro csrf() %}<input type="hidden" name="_csrf" value="{{ csrf_token() }}">{% endmacro %}
+
+{% macro status(s) %}<span class="badge {{ STATUS_BADGE.get(s, 'badge-closed') }}">{{ s }}</span>{% endmacro %}
+
+{% macro prio(p) %}<span class="badge {{ PRIORITY_BADGE.get(p, 'badge-closed') }}">{{ p }}</span>{% endmacro %}
+
+{% macro wait(mins) %}<span class="badge {{ 'badge-high' if mins >= 20 else 'badge-medium' if mins >= 10 else 'badge-low' }}">{% if mins >= 60 %}{{ mins // 60 }} h {{ mins % 60 }} min{% else %}{{ mins }} min{% endif %}</span>{% endmacro %}
+
+{% macro empty(icon, text) %}<div class="empty"><i data-lucide="{{ icon }}"></i><p>{{ text }}</p></div>{% endmacro %}
+
+{% macro header(title, sub='') %}
+<div class="welcome">
+  <div>
+    <h1 class="page-title">{{ title }}</h1>
+    {% if sub %}<p class="page-sub">{{ sub }}</p>{% endif %}
+  </div>
+  <div class="welcome-actions">{{ caller() if caller }}</div>
+</div>
+{% endmacro %}
+
+{% macro stat(icon, color, num, label) %}
+<div class="card stat"><div class="stat-icon {{ color }}"><i data-lucide="{{ icon }}"></i></div><div><div class="stat-num">{{ num }}</div><div class="stat-label">{{ label|safe }}</div></div></div>
+{% endmacro %}
+
+{% macro select(name, options, value='', placeholder=None, cls='select', attrs='') %}
+<div class="control">
+  <select name="{{ name }}" id="{{ name }}" class="{{ cls }}" {{ attrs|safe }}>
+    {% if placeholder is not none %}<option value="">{{ placeholder }}</option>{% endif %}
+    {% for o in options %}
+      {% if o is string %}<option value="{{ o }}" {{ 'selected' if value|string == o }}>{{ o }}</option>
+      {% else %}<option value="{{ o[0] }}" {{ 'selected' if value|string == o[0]|string }}>{{ o[1] }}</option>{% endif %}
+    {% endfor %}
+  </select>
+  <span class="suffix"><i data-lucide="chevron-down"></i></span>
+</div>
+{% endmacro %}
+
+{% macro err(errors, name) %}{% if errors.get(name) %}<div class="error-msg"><i data-lucide="circle-alert"></i>{{ errors[name] }}</div>{% endif %}{% endmacro %}
+
+{% macro pager(page, pages, endpoint) %}
+{% if pages > 1 %}
+<div class="pager">
+  <span>Page {{ page }} of {{ pages }}</span>
+  <div class="gap-row">
+    {% set args = request.args.to_dict() %}
+    {% if page > 1 %}{% set _ = args.update(page=page-1) %}<a class="btn btn-outline btn-sm" href="{{ url_for(endpoint, **args) }}">Previous</a>{% endif %}
+    {% if page < pages %}{% set _ = args.update(page=page+1) %}<a class="btn btn-outline btn-sm" href="{{ url_for(endpoint, **args) }}">Next</a>{% endif %}
+  </div>
+</div>
+{% endif %}
+{% endmacro %}
+
+{% macro timeline(history) %}
+<ul class="timeline">
+  {% for h in history %}
+  <li class="{{ 'green' if h.action in ('CASE_REGISTER','CASE_CLOSE_APPROVE') else 'red' if h.action in ('CASE_CLOSE_RETURN',) else '' }}">
+    <div class="t-title"><strong>{{ h.action|replace('_', ' ')|title }}</strong>{% if h.details %} · {{ h.details }}{% endif %}</div>
+    <div class="t-date">{{ h.actor }} · {{ h.created_at|dt }}</div>
+  </li>
+  {% else %}
+  <li><div class="t-title muted">No activity recorded yet.</div></li>
+  {% endfor %}
+</ul>
+{% endmacro %}

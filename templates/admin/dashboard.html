@@ -1,0 +1,70 @@
+{% extends 'layout.html' %}
+{% block title %}Admin Dashboard{% endblock %}
+{% block content %}
+<div class="welcome">
+  <div>
+    <h1 class="page-title">Good day, {{ me.name }}</h1>
+    <p class="page-sub"><span class="js-today"></span>System administration</p>
+  </div>
+  <div class="welcome-actions">
+    <a href="{{ url_for('admin.audit') }}" class="btn btn-outline"><i data-lucide="fingerprint"></i>View Audit Log</a>
+    <a href="{{ url_for('admin.new_user') }}" class="btn btn-primary"><i data-lucide="user-plus"></i>Add User</a>
+  </div>
+</div>
+
+<section class="stats">
+  {{ ui.stat('users', 'i-sky', stats.active, 'Active<br>users') }}
+  {{ ui.stat('user-cog', 'i-orange', stats.pending, 'Accounts waiting<br>for approval') }}
+  {{ ui.stat('lock', 'i-red', stats.locked, 'Locked<br>accounts') }}
+  {{ ui.stat('fingerprint', 'i-green', stats.audit_today, 'Audit entries<br>today') }}
+</section>
+
+<div class="dash-grid">
+  <section class="card span-2">
+    <div class="card-head"><h2 class="card-title">Needs Your Attention</h2><a href="{{ url_for('admin.users') }}" class="link">All users</a></div>
+    {% if attention %}
+    <div class="table-wrap"><table class="table">
+      <thead><tr><th>Name</th><th>Personnel No.</th><th>Role</th><th>Station</th><th>Status</th><th>Actions</th></tr></thead>
+      <tbody>{% for u in attention %}
+        <tr><td>{{ u.full_name }}</td><td>{{ u.persal }}</td><td>{{ ROLE_NAMES[u.role] }}</td><td>{{ u.station_name }}</td><td>{{ ui.status(u.status) }}</td>
+          <td class="actions">
+            <form method="post" action="{{ url_for('admin.quick_action', uid=u.id) }}">{{ ui.csrf() }}
+              <button class="btn btn-primary btn-sm" name="action" value="{{ 'approve' if u.status == 'Pending' else 'unlock' }}">{{ 'Approve' if u.status == 'Pending' else 'Unlock' }}</button></form>
+            <a class="btn btn-outline btn-sm" href="{{ url_for('admin.edit_user', uid=u.id) }}">Edit</a>
+          </td></tr>
+      {% endfor %}</tbody>
+    </table></div>
+    {% else %}{{ ui.empty('circle-check', 'No pending or locked accounts.') }}{% endif %}
+  </section>
+
+  <section class="card">
+    <div class="card-head"><h2 class="card-title">System Health</h2></div>
+    <ul class="health">
+      <li><span>Database</span><b class="ok"><i data-lucide="circle-check"></i>Online ({{ health.db_size }})</b></li>
+      <li><span>Audit log integrity</span>
+        {% if health.audit_ok %}<b class="ok"><i data-lucide="shield-check"></i>Verified ({{ health.audit_checked }})</b>
+        {% else %}<b class="bad"><i data-lucide="shield-alert"></i>Broken at #{{ health.audit_bad }}</b>{% endif %}</li>
+      <li><span>Dockets stored</span><b>{{ health.dockets }}</b></li>
+      <li><span>Evidence files</span><b>{{ health.uploads }}</b></li>
+    </ul>
+  </section>
+
+  <section class="card span-2">
+    <div class="card-head"><h2 class="card-title">Recent Sign-ins</h2><a href="{{ url_for('admin.users') }}" class="link">Manage users</a></div>
+    <div class="table-wrap"><table class="table">
+      <thead><tr><th>Name</th><th>Role</th><th>Station</th><th>Status</th><th>Last Login</th><th></th></tr></thead>
+      <tbody>{% for u in users %}
+        <tr><td>{{ u.full_name }}</td><td>{{ ROLE_NAMES[u.role] }}</td><td>{{ u.station_name }}</td><td>{{ ui.status(u.status) }}</td><td>{{ u.last_login|ago if u.last_login else 'Never' }}</td>
+          <td><a class="btn btn-outline btn-sm" href="{{ url_for('admin.edit_user', uid=u.id) }}">Edit</a></td></tr>
+      {% endfor %}</tbody>
+    </table></div>
+  </section>
+
+  <section class="card">
+    <div class="card-head"><h2 class="card-title">Latest Audit Entries</h2></div>
+    <ul class="timeline">
+      {% for a in latest %}<li><div class="t-title"><span class="mono">{{ a.action }}</span> {{ a.record }}</div><div class="t-date">{{ a.actor }} · {{ a.created_at|ago }}</div></li>{% endfor %}
+    </ul>
+  </section>
+</div>
+{% endblock %}

@@ -1,0 +1,39 @@
+{% extends 'layout.html' %}
+{% block title %}User Management{% endblock %}
+{% block content %}
+{% call ui.header('User Management', 'Create accounts, set roles and stations, and approve or unlock users') %}
+  <a href="{{ url_for('admin.new_user') }}" class="btn btn-primary"><i data-lucide="user-plus"></i>Add User</a>
+{% endcall %}
+<form class="card filters" method="get">
+  <div class="field grow"><label for="q">Search</label><input id="q" name="q" class="input" value="{{ f.q }}" placeholder="Name, personnel number or email"></div>
+  <div class="field"><label for="role">Role</label>{{ ui.select('role', roles.items()|list, f.role, 'All roles') }}</div>
+  <div class="field"><label for="status">Status</label>{{ ui.select('status', statuses, f.status, 'All statuses') }}</div>
+  <button class="btn btn-primary" type="submit">Filter</button>
+  {% if f.q or f.role or f.status %}<a class="btn btn-outline" href="{{ url_for('admin.users') }}">Clear</a>{% endif %}
+</form>
+<section class="card">
+  <div class="card-head"><h2 class="card-title">{{ users|length }} user{{ 's' if users|length != 1 }}</h2></div>
+  {% if users %}
+  <div class="table-wrap"><table class="table">
+    <thead><tr><th>Name</th><th>Personnel No.</th><th>Role</th><th>Station</th><th>Status</th><th>Last Login</th><th>Actions</th></tr></thead>
+    <tbody>{% for u in users %}
+      <tr><td><strong>{{ u.full_name }}</strong><div class="small muted">{{ u.email or '' }}</div></td><td>{{ u.persal }}</td><td>{{ ROLE_NAMES[u.role] }}</td>
+        <td>{{ u.station_name or '—' }}</td><td>{{ ui.status(u.status) }}</td><td>{{ u.last_login|dt if u.last_login else 'Never' }}</td>
+        <td class="actions">
+          <a class="btn btn-outline btn-sm" href="{{ url_for('admin.edit_user', uid=u.id) }}">Edit</a>
+          {% if u.id != session.user_id %}
+            {% if u.status in ('Pending', 'Locked', 'Inactive') %}
+            <form method="post" action="{{ url_for('admin.quick_action', uid=u.id) }}">{{ ui.csrf() }}
+              <button class="btn btn-primary btn-sm" name="action" value="{{ 'approve' if u.status == 'Pending' else 'unlock' }}">{{ 'Approve' if u.status == 'Pending' else 'Activate' if u.status == 'Inactive' else 'Unlock' }}</button></form>
+            {% else %}
+            <form method="post" action="{{ url_for('admin.quick_action', uid=u.id) }}" data-confirm="Deactivate {{ u.full_name }}? They will not be able to sign in.">{{ ui.csrf() }}
+              <button class="btn btn-outline btn-sm" name="action" value="deactivate">Deactivate</button></form>
+            {% endif %}
+          {% endif %}
+        </td></tr>
+    {% endfor %}</tbody>
+  </table></div>
+  {% else %}{{ ui.empty('users', 'No users match these filters.') }}{% endif %}
+</section>
+<p class="small muted">Accounts are never deleted, so every entry in the audit log stays linked to a real person. Deactivate accounts instead.</p>
+{% endblock %}

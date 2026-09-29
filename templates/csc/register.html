@@ -1,0 +1,139 @@
+{% extends 'layout.html' %}
+{% block title %}Register New Case{% endblock %}
+{% macro fc(name) %}{{ 'is-invalid' if errors.get(name) }}{% endmacro %}
+{% block content %}
+{{ ui.header('Register New Case', 'Capture complainant details and incident information') }}
+
+<form method="post" class="register-grid" id="caseForm" novalidate>
+  {{ ui.csrf() }}
+  <section class="card form-card">
+    <div class="form-section">
+      <h2 class="section-title">Check-in</h2>
+      <div class="row">
+        <div class="field">
+          <label for="checkin_ref">Link to kiosk check-in</label>
+          <div class="control">
+            <select id="checkin_ref" name="checkin_ref" class="select">
+              <option value="">Walk-in (no kiosk check-in)</option>
+              {% for c in checkins %}
+              <option value="{{ c.ref }}" data-name="{{ c.full_name }}" data-id="{{ c.id_no }}" {{ 'selected' if form.checkin_ref == c.ref }}>{{ c.ref }} – {{ c.full_name }} ({{ c.created_at|dt('%H:%M') }})</option>
+              {% endfor %}
+            </select>
+            <span class="suffix"><i data-lucide="chevron-down"></i></span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-section">
+      <h2 class="section-title">Complainant Details</h2>
+      <div class="row row-2">
+        <div class="field {{ fc('full_name') }}">
+          <label for="full_name">Full Name <span class="req">*</span></label>
+          <input id="full_name" name="full_name" class="input" value="{{ form.full_name }}" placeholder="e.g. Thabo Dlamini">
+          {{ ui.err(errors, 'full_name') }}
+        </div>
+        <div class="field {{ fc('id_no') }}">
+          <label for="id_no">ID Number <span class="req">*</span></label>
+          <input id="id_no" name="id_no" class="input" value="{{ form.id_no }}" inputmode="numeric" placeholder="13-digit SA ID number">
+          {{ ui.err(errors, 'id_no') }}
+        </div>
+      </div>
+      <div class="row row-2">
+        <div class="field {{ fc('contact') }}">
+          <label for="contact">Contact Number <span class="req">*</span></label>
+          <input id="contact" name="contact" class="input" value="{{ form.contact }}" inputmode="tel" placeholder="e.g. 082 345 6789">
+          {{ ui.err(errors, 'contact') }}
+        </div>
+        <div class="field {{ fc('email') }}">
+          <label for="email">Email</label>
+          <input id="email" name="email" type="email" class="input" value="{{ form.email }}" placeholder="Optional">
+          {{ ui.err(errors, 'email') }}
+        </div>
+      </div>
+      <div class="row">
+        <div class="field {{ fc('address') }}">
+          <label for="address">Address <span class="req">*</span></label>
+          <input id="address" name="address" class="input" value="{{ form.address }}" placeholder="Street, area, city, postal code">
+          {{ ui.err(errors, 'address') }}
+        </div>
+      </div>
+    </div>
+
+    <div class="form-section">
+      <h2 class="section-title">Incident Details</h2>
+      <div class="row row-3">
+        <div class="field {{ fc('date') }}">
+          <label for="date">Date of Incident <span class="req">*</span></label>
+          <input id="date" name="date" type="date" class="input" value="{{ form.date }}" max="{{ now_date }}">
+          {{ ui.err(errors, 'date') }}
+        </div>
+        <div class="field {{ fc('time') }}">
+          <label for="time">Time of Incident <span class="req">*</span></label>
+          <input id="time" name="time" type="time" class="input" value="{{ form.time }}">
+          {{ ui.err(errors, 'time') }}
+        </div>
+        <div class="field {{ fc('crime') }}">
+          <label for="crime">Crime / Offence Type <span class="req">*</span></label>
+          {{ ui.select('crime', crime_types, form.crime, 'Select crime / offence type') }}
+          {{ ui.err(errors, 'crime') }}
+        </div>
+      </div>
+      <div class="row row-2">
+        <div class="field">
+          <label for="location">Place where it happened</label>
+          <input id="location" name="location" class="input" value="{{ form.location }}" placeholder="e.g. Taxi rank, Soshanguve Crossing">
+        </div>
+        <div class="field">
+          <label for="priority">Suggested Priority</label>
+          {{ ui.select('priority', ['High', 'Medium', 'Low'], form.priority) }}
+        </div>
+      </div>
+      <div class="row" style="margin-bottom:0">
+        <div class="field {{ fc('description') }}">
+          <label for="description">Description of Incident <span class="req">*</span></label>
+          <textarea id="description" name="description" class="textarea" rows="5" placeholder="Provide a detailed description of what happened...">{{ form.description }}</textarea>
+          {{ ui.err(errors, 'description') }}
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <aside class="side-col">
+    {% if errors %}
+    <div class="alert alert-danger">
+      <div class="alert-title"><i data-lucide="triangle-alert"></i>Validation Errors</div>
+      <ul>{% for msg in errors.values() %}<li>{{ msg }}</li>{% endfor %}</ul>
+    </div>
+    {% endif %}
+    <div class="alert alert-info">
+      <div class="alert-title"><i data-lucide="info"></i>Information</div>
+      <p>Please ensure all required fields marked with <span class="req">*</span> are completed before submitting the case. A docket number is created automatically.</p>
+    </div>
+    <div class="alert alert-info">
+      <div class="alert-title"><i data-lucide="shield-check"></i>Remember</div>
+      <p>Under National Instruction 3 of 2011 every valid complaint must be registered. If you do not open a docket, log a refusal from the check-in queue.</p>
+    </div>
+    <div class="form-actions">
+      <a href="{{ url_for('csc.dashboard') }}" class="btn btn-outline">Cancel</a>
+      <button type="submit" class="btn btn-primary">Submit Case</button>
+    </div>
+  </aside>
+</form>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  document.getElementById('checkin_ref').addEventListener('change', e => {
+    const opt = e.target.selectedOptions[0];
+    if (opt.dataset.name) {
+      document.getElementById('full_name').value = opt.dataset.name;
+      document.getElementById('id_no').value = opt.dataset.id;
+    }
+  });
+  document.querySelectorAll('#caseForm .field.is-invalid').forEach(f => {
+    const input = f.querySelector('input,select,textarea');
+    input.addEventListener(input.tagName === 'SELECT' ? 'change' : 'input', () => f.classList.remove('is-invalid'));
+  });
+</script>
+{% endblock %}
